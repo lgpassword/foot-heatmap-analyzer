@@ -33,6 +33,8 @@ next width * height bytes: right foot matrix values, 0-255
 
 Example payloads can be pasted as hexadecimal, Base64, or a continuous binary bit string.
 
+See `samples/` for a ready-to-use synthetic reference scan in `.hex`, `.bin`, and CSV matrix formats.
+
 ## Run Locally
 
 ```powershell
