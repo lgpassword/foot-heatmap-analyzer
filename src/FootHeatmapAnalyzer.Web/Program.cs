@@ -4,6 +4,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 builder.Services.AddSingleton<IFootScanParser, FootScanParser>();
+builder.Services.AddSingleton<IHeatmapFeatureExtractor, HeatmapFeatureExtractor>();
+builder.Services.AddSingleton<FootRiskClassifier>();
 builder.Services.AddSingleton<IFootAnalysisService, FootAnalysisService>();
 
 var app = builder.Build();
