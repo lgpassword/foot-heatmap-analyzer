@@ -1,25 +1,25 @@
 @page
 @model IndexModel
 @{
-    ViewData["Title"] = "Foot Heatmap Analyzer";
+    ViewData["Title"] = "足底热力图分析";
 }
 
 <section class="hero">
     <div>
-        <p class="eyebrow">Open-source ASP.NET Core screening demo</p>
-        <h1>Foot Heatmap Analyzer</h1>
-        <p class="hero-copy">Parse binary plantar pressure or temperature scans, render left and right heatmaps, and produce transparent auxiliary screening signals.</p>
+        <p class="eyebrow">开源 ASP.NET Core 辅助筛查演示</p>
+        <h1>足底热力图分析</h1>
+        <p class="hero-copy">解析足底压力或温度传感器数据，展示左右足热力图，并输出透明、可解释的辅助筛查结果。</p>
     </div>
     <form method="post" enctype="multipart/form-data" class="input-panel">
-        <label for="ScanFile">Import scan file</label>
+        <label for="ScanFile">导入扫描文件</label>
         <input asp-for="ScanFile" id="ScanFile" type="file" class="form-control" accept=".bin,.dat,.hex,.txt,.b64,.base64" />
-        <label for="ScanText">Paste hex, bit string, or Base64</label>
+        <label for="ScanText">粘贴十六进制、二进制位串或 Base64 数据</label>
         <textarea asp-for="ScanText" id="ScanText" rows="5" class="form-control" placeholder="@Model.SampleHex"></textarea>
         <div class="actions">
-            <button type="submit" class="btn btn-primary">Analyze</button>
-            <button type="button" class="btn btn-outline-secondary" id="loadSample">Load sample</button>
+            <button type="submit" class="btn btn-primary">开始分析</button>
+            <button type="button" class="btn btn-outline-secondary" id="loadSample">加载示例</button>
         </div>
-        <p class="format-note">Imports `.bin`/`.dat` as raw bytes and `.hex`/`.txt`/`.b64`/`.base64` as text. Format: byte 0 = width, byte 1 = height, followed by left matrix then right matrix, one byte per cell.</p>
+        <p class="format-note">`.bin`/`.dat` 按原始字节解析，`.hex`/`.txt`/`.b64`/`.base64` 按文本解析。格式：第 0 字节为宽度，第 1 字节为高度，随后依次为左足矩阵和右足矩阵，每个点 1 字节。</p>
     </form>
 </section>
 
@@ -32,14 +32,14 @@
     <div class="heatmap-area">
         <div class="heatmap-card">
             <div class="panel-heading">
-                <h2>Left Foot</h2>
+                <h2>左足</h2>
                 <span>@Model.Scan?.LeftFoot.Width x @Model.Scan?.LeftFoot.Height</span>
             </div>
             <canvas id="leftHeatmap" width="360" height="540"></canvas>
         </div>
         <div class="heatmap-card">
             <div class="panel-heading">
-                <h2>Right Foot</h2>
+                <h2>右足</h2>
                 <span>@Model.Scan?.RightFoot.Width x @Model.Scan?.RightFoot.Height</span>
             </div>
             <canvas id="rightHeatmap" width="360" height="540"></canvas>
@@ -51,15 +51,15 @@
         <aside class="analysis-panel">
             <div class="summary-grid">
                 <div>
-                    <span>Arch type</span>
+                    <span>足弓类型</span>
                     <strong>@Model.Report.ArchType</strong>
                 </div>
                 <div>
-                    <span>Gait cycle</span>
+                    <span>步态周期</span>
                     <strong>@Model.Report.GaitCycle</strong>
                 </div>
                 <div>
-                    <span>Center of pressure</span>
+                    <span>重心平衡</span>
                     <strong>@Model.Report.CenterOfPressure</strong>
                 </div>
             </div>

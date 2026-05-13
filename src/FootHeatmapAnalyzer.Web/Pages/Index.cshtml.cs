@@ -65,7 +65,7 @@ public sealed class IndexModel(IFootScanParser parser, IFootAnalysisService anal
     {
         if (file.Length > MaxUploadBytes)
         {
-            throw new InvalidDataException($"Uploaded file must be {MaxUploadBytes / 1024} KB or smaller.");
+            throw new InvalidDataException($"上传文件不能超过 {MaxUploadBytes / 1024} KB。");
         }
 
         await using var stream = file.OpenReadStream();

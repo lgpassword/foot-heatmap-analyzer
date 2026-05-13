@@ -15,21 +15,21 @@ public sealed class FootScanParser : IFootScanParser
     {
         if (payload.Length < HeaderLength)
         {
-            throw new InvalidDataException("Payload must start with width and height bytes.");
+            throw new InvalidDataException("数据必须以宽度和高度两个字节开头。");
         }
 
         var width = payload[0];
         var height = payload[1];
         if (width <= 0 || height <= 0 || width > MaxDimension || height > MaxDimension)
         {
-            throw new InvalidDataException($"Width and height must be between 1 and {MaxDimension}.");
+            throw new InvalidDataException($"宽度和高度必须在 1 到 {MaxDimension} 之间。");
         }
 
         var cellCount = width * height;
         var expectedLength = HeaderLength + (cellCount * 2);
         if (payload.Length != expectedLength)
         {
-            throw new InvalidDataException($"Payload length must be {expectedLength} bytes for {width}x{height} left/right heatmaps.");
+            throw new InvalidDataException($"{width}x{height} 的左右足热力图需要 {expectedLength} 字节数据。");
         }
 
         var left = ReadMatrix(payload, HeaderLength, width, height, FootSide.Left);
@@ -41,7 +41,7 @@ public sealed class FootScanParser : IFootScanParser
     {
         if (string.IsNullOrWhiteSpace(input))
         {
-            throw new InvalidDataException("Input text is empty.");
+            throw new InvalidDataException("输入内容为空。");
         }
 
         var compact = Regex.Replace(input.Trim(), @"[\s,_:-]+", "");

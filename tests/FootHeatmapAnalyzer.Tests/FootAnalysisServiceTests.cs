@@ -18,9 +18,9 @@ public sealed class FootAnalysisServiceTests
         Assert.False(string.IsNullOrWhiteSpace(report.ArchType));
         Assert.False(string.IsNullOrWhiteSpace(report.GaitCycle));
         Assert.False(string.IsNullOrWhiteSpace(report.CenterOfPressure));
-        Assert.Contains(report.Findings, finding => finding.Category.Contains("Diabetic"));
-        Assert.Contains(report.Findings, finding => finding.Category.Contains("recognition"));
-        Assert.Contains("non-diagnostic", report.Disclaimer);
+        Assert.Contains(report.Findings, finding => finding.Category.Contains("糖尿病足"));
+        Assert.Contains(report.Findings, finding => finding.Category.Contains("识别质量"));
+        Assert.Contains("非诊断性", report.Disclaimer);
     }
 
     [Fact]
@@ -48,6 +48,6 @@ public sealed class FootAnalysisServiceTests
 
         var report = classifier.ClassifyArch(new FootScanMetrics(left, right));
 
-        Assert.Equal("Neutral arch tendency", report);
+        Assert.Equal("中性足弓倾向", report);
     }
 }
