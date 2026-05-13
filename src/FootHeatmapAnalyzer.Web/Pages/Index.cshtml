@@ -1,0 +1,82 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Foot Heatmap Analyzer";
+}
+
+<section class="hero">
+    <div>
+        <p class="eyebrow">Open-source ASP.NET Core screening demo</p>
+        <h1>Foot Heatmap Analyzer</h1>
+        <p class="hero-copy">Parse binary plantar pressure or temperature scans, render left and right heatmaps, and produce transparent auxiliary screening signals.</p>
+    </div>
+    <form method="post" enctype="multipart/form-data" class="input-panel">
+        <label for="ScanFile">Binary scan file</label>
+        <input asp-for="ScanFile" id="ScanFile" type="file" class="form-control" />
+        <label for="ScanText">Paste hex, bit string, or Base64</label>
+        <textarea asp-for="ScanText" id="ScanText" rows="5" class="form-control" placeholder="@Model.SampleHex"></textarea>
+        <div class="actions">
+            <button type="submit" class="btn btn-primary">Analyze</button>
+            <button type="button" class="btn btn-outline-secondary" id="loadSample">Load sample</button>
+        </div>
+        <p class="format-note">Format: byte 0 = width, byte 1 = height, followed by left matrix then right matrix, one byte per cell.</p>
+    </form>
+</section>
+
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-warning" role="alert">@Model.ErrorMessage</div>
+}
+
+<section class="workspace" data-heatmap='@Html.Raw(Model.HeatmapJson)' data-sample="@Model.SampleHex">
+    <div class="heatmap-area">
+        <div class="heatmap-card">
+            <div class="panel-heading">
+                <h2>Left Foot</h2>
+                <span>@Model.Scan?.LeftFoot.Width x @Model.Scan?.LeftFoot.Height</span>
+            </div>
+            <canvas id="leftHeatmap" width="360" height="540"></canvas>
+        </div>
+        <div class="heatmap-card">
+            <div class="panel-heading">
+                <h2>Right Foot</h2>
+                <span>@Model.Scan?.RightFoot.Width x @Model.Scan?.RightFoot.Height</span>
+            </div>
+            <canvas id="rightHeatmap" width="360" height="540"></canvas>
+        </div>
+    </div>
+
+    @if (Model.Report is not null)
+    {
+        <aside class="analysis-panel">
+            <div class="summary-grid">
+                <div>
+                    <span>Arch type</span>
+                    <strong>@Model.Report.ArchType</strong>
+                </div>
+                <div>
+                    <span>Gait cycle</span>
+                    <strong>@Model.Report.GaitCycle</strong>
+                </div>
+                <div>
+                    <span>Center of pressure</span>
+                    <strong>@Model.Report.CenterOfPressure</strong>
+                </div>
+            </div>
+            <div class="findings">
+                @foreach (var finding in Model.Report.Findings)
+                {
+                    <article>
+                        <div>
+                            <span class="level">@finding.Level</span>
+                            <h3>@finding.Category</h3>
+                        </div>
+                        <p>@finding.Summary</p>
+                        <small>@finding.Rationale</small>
+                    </article>
+                }
+            </div>
+            <p class="disclaimer">@Model.Report.Disclaimer</p>
+        </aside>
+    }
+</section>

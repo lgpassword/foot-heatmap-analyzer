@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FootHeatmapAnalyzer.Web/FootHeatmapAnalyzer.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FootHeatmapAnalyzer.Tests/FootHeatmapAnalyzer.Tests.csproj" />
+  </Folder>
+</Solution>
