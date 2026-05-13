@@ -1,4 +1,4 @@
-namespace FootHeatmapAnalyzer.Web.Models;
+namespace FootHeatmapAnalyzer.Core.Models;
 
 /// <summary>
 /// Describes one non-diagnostic screening signal derived from a heatmap.

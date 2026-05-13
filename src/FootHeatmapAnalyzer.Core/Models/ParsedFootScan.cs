@@ -1,4 +1,4 @@
-namespace FootHeatmapAnalyzer.Web.Models;
+namespace FootHeatmapAnalyzer.Core.Models;
 
 /// <summary>
 /// Contains the parsed left and right foot heatmaps from one scan payload.

@@ -1,6 +1,7 @@
-using FootHeatmapAnalyzer.Web.Models;
+using FootHeatmapAnalyzer.Core.Models;
+using FootHeatmapAnalyzer.Core.Services;
 
-namespace FootHeatmapAnalyzer.Web.Services;
+namespace FootHeatmapAnalyzer.Algorithms.Services;
 
 /// <summary>
 /// Converts heatmap pixels into region loads, contact area, hotspots, and center-of-pressure metrics.

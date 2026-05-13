@@ -1,11 +1,11 @@
-using FootHeatmapAnalyzer.Web.Models;
+using FootHeatmapAnalyzer.Core.Models;
 
-namespace FootHeatmapAnalyzer.Web.Services;
+namespace FootHeatmapAnalyzer.Core.Services;
 
 /// <summary>
 /// Orchestrates heatmap feature extraction and non-diagnostic report generation.
 /// </summary>
-public sealed class FootAnalysisService(IHeatmapFeatureExtractor featureExtractor, FootRiskClassifier classifier) : IFootAnalysisService
+public sealed class FootAnalysisService(IHeatmapFeatureExtractor featureExtractor, IFootRiskClassifier classifier) : IFootAnalysisService
 {
     private const string Disclaimer = "This project provides screening-oriented, non-diagnostic research output. It does not diagnose disease or replace clinical evaluation.";
 

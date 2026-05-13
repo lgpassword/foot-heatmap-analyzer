@@ -59,22 +59,30 @@ Then open the local URL printed by ASP.NET Core.
 ## Project Structure
 
 ```text
+src/FootHeatmapAnalyzer.Core/
+  Models/       Domain records for heatmaps, metrics, and reports
+  Services/     Core parser, service contracts, and report orchestration
+src/FootHeatmapAnalyzer.Algorithms/
+  Services/     Heatmap feature extraction and screening classifiers
+src/FootHeatmapAnalyzer.Composition/
+  *.cs          Unified dependency injection registration
+src/FootHeatmapAnalyzer.UiStyles/
+  wwwroot/      Shared CSS and JavaScript static assets
 src/FootHeatmapAnalyzer.Web/
-  Models/       Domain records for heatmaps and reports
-  Services/     Parser, feature extraction, classifier, and report orchestration
-  Pages/        Razor Pages UI
+  Pages/        Razor Pages UI and upload handling
 tests/FootHeatmapAnalyzer.Tests/
-  Parser and analysis unit tests
+  Parser, algorithm, and service registration tests
 ```
 
 ## Recognition Pipeline
 
 The current recognition pipeline is intentionally modular:
 
-- `FootScanParser`: parses files or pasted payloads into normalized heatmap matrices.
-- `HeatmapFeatureExtractor`: extracts region loads, arch index, contact area, hotspots, and center-of-pressure features.
-- `FootRiskClassifier`: converts features into transparent non-diagnostic screening categories.
-- `FootAnalysisService`: orchestrates extraction and classification into the final report.
+- `FootScanParser` in `Core`: parses bytes or pasted payloads into normalized heatmap matrices.
+- `HeatmapFeatureExtractor` in `Algorithms`: extracts region loads, arch index, contact area, hotspots, and center-of-pressure features.
+- `FootRiskClassifier` in `Algorithms`: converts features into transparent non-diagnostic screening categories.
+- `FootAnalysisService` in `Core`: orchestrates extraction and classification into the final report through interfaces.
+- `AddFootHeatmapAnalyzer` in `Composition`: registers the parser, algorithms, classifier, and analysis service in one place.
 
 ## Medical Disclaimer
 

@@ -1,6 +1,6 @@
-using FootHeatmapAnalyzer.Web.Models;
+using FootHeatmapAnalyzer.Core.Models;
 
-namespace FootHeatmapAnalyzer.Web.Services;
+namespace FootHeatmapAnalyzer.Core.Services;
 
 /// <summary>
 /// Converts a binary foot scan payload into left and right heatmap matrices.
@@ -8,8 +8,6 @@ namespace FootHeatmapAnalyzer.Web.Services;
 public interface IFootScanParser
 {
     ParsedFootScan ParseBytes(byte[] payload);
-
-    Task<ParsedFootScan> ParseFileAsync(IFormFile file, CancellationToken cancellationToken = default);
 
     ParsedFootScan ParseText(string input);
 }

@@ -1,5 +1,6 @@
-using FootHeatmapAnalyzer.Web.Models;
-using FootHeatmapAnalyzer.Web.Services;
+using FootHeatmapAnalyzer.Algorithms.Services;
+using FootHeatmapAnalyzer.Core.Models;
+using FootHeatmapAnalyzer.Core.Services;
 
 namespace FootHeatmapAnalyzer.Tests;
 

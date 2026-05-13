@@ -1,6 +1,6 @@
 using System.Text.Json;
-using FootHeatmapAnalyzer.Web.Models;
-using FootHeatmapAnalyzer.Web.Services;
+using FootHeatmapAnalyzer.Core.Models;
+using FootHeatmapAnalyzer.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -8,6 +8,8 @@ namespace FootHeatmapAnalyzer.Web.Pages;
 
 public sealed class IndexModel(IFootScanParser parser, IFootAnalysisService analysisService) : PageModel
 {
+    private const long MaxUploadBytes = 1024 * 1024;
+
     [BindProperty]
     public string? ScanText { get; set; }
 
@@ -35,7 +37,7 @@ public sealed class IndexModel(IFootScanParser parser, IFootAnalysisService anal
         {
             if (ScanFile is { Length: > 0 })
             {
-                LoadScan(await parser.ParseFileAsync(ScanFile, HttpContext.RequestAborted));
+                LoadScan(await ParseUploadedFileAsync(ScanFile, HttpContext.RequestAborted));
                 return;
             }
 
@@ -57,5 +59,38 @@ public sealed class IndexModel(IFootScanParser parser, IFootAnalysisService anal
             left = scan.LeftFoot.Values,
             right = scan.RightFoot.Values
         });
+    }
+
+    private async Task<ParsedFootScan> ParseUploadedFileAsync(IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file.Length > MaxUploadBytes)
+        {
+            throw new InvalidDataException($"Uploaded file must be {MaxUploadBytes / 1024} KB or smaller.");
+        }
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory, cancellationToken);
+        var bytes = memory.ToArray();
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        return extension switch
+        {
+            ".bin" or ".dat" => parser.ParseBytes(bytes),
+            ".hex" or ".txt" or ".b64" or ".base64" => parser.ParseText(System.Text.Encoding.UTF8.GetString(bytes)),
+            _ => ParseUnknownFile(bytes)
+        };
+    }
+
+    private ParsedFootScan ParseUnknownFile(byte[] bytes)
+    {
+        try
+        {
+            return parser.ParseBytes(bytes);
+        }
+        catch (InvalidDataException)
+        {
+            return parser.ParseText(System.Text.Encoding.UTF8.GetString(bytes));
+        }
     }
 }

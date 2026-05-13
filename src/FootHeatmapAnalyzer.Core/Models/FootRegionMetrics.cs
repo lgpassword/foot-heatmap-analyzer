@@ -1,4 +1,4 @@
-namespace FootHeatmapAnalyzer.Web.Models;
+namespace FootHeatmapAnalyzer.Core.Models;
 
 /// <summary>
 /// Captures measurable heatmap features for one foot.

@@ -1,11 +1,12 @@
-using FootHeatmapAnalyzer.Web.Models;
+using FootHeatmapAnalyzer.Core.Models;
+using FootHeatmapAnalyzer.Core.Services;
 
-namespace FootHeatmapAnalyzer.Web.Services;
+namespace FootHeatmapAnalyzer.Algorithms.Services;
 
 /// <summary>
 /// Converts extracted heatmap features into transparent non-diagnostic screening text.
 /// </summary>
-public sealed class FootRiskClassifier
+public sealed class FootRiskClassifier : IFootRiskClassifier
 {
     public string ClassifyArch(FootScanMetrics metrics)
     {

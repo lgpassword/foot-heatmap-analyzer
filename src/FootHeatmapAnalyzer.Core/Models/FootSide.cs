@@ -1,4 +1,4 @@
-namespace FootHeatmapAnalyzer.Web.Models;
+namespace FootHeatmapAnalyzer.Core.Models;
 
 /// <summary>
 /// Identifies the side represented by a foot heatmap matrix.

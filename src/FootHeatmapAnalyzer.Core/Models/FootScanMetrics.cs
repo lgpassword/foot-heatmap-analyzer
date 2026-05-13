@@ -1,4 +1,4 @@
-namespace FootHeatmapAnalyzer.Web.Models;
+namespace FootHeatmapAnalyzer.Core.Models;
 
 /// <summary>
 /// Combines left and right foot features used by the screening classifier.

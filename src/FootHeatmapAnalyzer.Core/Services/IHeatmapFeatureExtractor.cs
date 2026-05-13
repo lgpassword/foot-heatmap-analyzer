@@ -1,6 +1,6 @@
-using FootHeatmapAnalyzer.Web.Models;
+using FootHeatmapAnalyzer.Core.Models;
 
-namespace FootHeatmapAnalyzer.Web.Services;
+namespace FootHeatmapAnalyzer.Core.Services;
 
 /// <summary>
 /// Extracts normalized recognition features from parsed heatmaps.
