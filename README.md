@@ -7,7 +7,7 @@ This project is intended for research, education, prototyping, and open-source c
 ## Features
 
 - ASP.NET Core Razor Pages web interface.
-- Upload a binary scan file or paste hex, bit-string, or Base64 payloads.
+- Import `.bin`, `.dat`, `.hex`, `.txt`, `.b64`, and `.base64` scan files or paste hex, bit-string, or Base64 payloads.
 - Render left and right foot heatmaps on HTML canvas.
 - Produce non-diagnostic screening output for:
   - arch type tendency
@@ -34,6 +34,16 @@ next width * height bytes: right foot matrix values, 0-255
 Example payloads can be pasted as hexadecimal, Base64, or a continuous binary bit string.
 
 See `samples/` for a ready-to-use synthetic reference scan in `.hex`, `.bin`, and CSV matrix formats.
+
+## File Import
+
+The web form accepts these file types:
+
+- `.bin` and `.dat`: parsed as raw protocol bytes.
+- `.hex` and `.txt`: parsed as text containing hexadecimal, binary bit strings, or Base64.
+- `.b64` and `.base64`: parsed as Base64 text.
+
+Files are processed in memory and are not stored.
 
 ## Run Locally
 

@@ -9,6 +9,7 @@ namespace FootHeatmapAnalyzer.Web.Services;
 public sealed class FootScanParser : IFootScanParser
 {
     private const int HeaderLength = 2;
+    private const long MaxUploadBytes = 1024 * 1024;
     private const int MaxDimension = 64;
 
     public ParsedFootScan ParseBytes(byte[] payload)
@@ -54,6 +55,32 @@ public sealed class FootScanParser : IFootScanParser
         return ParseBytes(bytes);
     }
 
+    public async Task<ParsedFootScan> ParseFileAsync(IFormFile file, CancellationToken cancellationToken = default)
+    {
+        if (file.Length <= 0)
+        {
+            throw new InvalidDataException("Uploaded file is empty.");
+        }
+
+        if (file.Length > MaxUploadBytes)
+        {
+            throw new InvalidDataException($"Uploaded file must be {MaxUploadBytes / 1024} KB or smaller.");
+        }
+
+        await using var stream = file.OpenReadStream();
+        using var memory = new MemoryStream();
+        await stream.CopyToAsync(memory, cancellationToken);
+        var bytes = memory.ToArray();
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+        return extension switch
+        {
+            ".bin" or ".dat" => ParseBytes(bytes),
+            ".hex" or ".txt" or ".b64" or ".base64" => ParseText(System.Text.Encoding.UTF8.GetString(bytes)),
+            _ => TryParseUnknownFile(bytes)
+        };
+    }
+
     private static FootHeatmap ReadMatrix(byte[] payload, int offset, int width, int height, FootSide side)
     {
         var rows = new double[height][];
@@ -82,5 +109,17 @@ public sealed class FootScanParser : IFootScanParser
         }
 
         return bytes;
+    }
+
+    private ParsedFootScan TryParseUnknownFile(byte[] bytes)
+    {
+        try
+        {
+            return ParseBytes(bytes);
+        }
+        catch (InvalidDataException)
+        {
+            return ParseText(System.Text.Encoding.UTF8.GetString(bytes));
+        }
     }
 }

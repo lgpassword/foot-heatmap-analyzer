@@ -9,5 +9,7 @@ public interface IFootScanParser
 {
     ParsedFootScan ParseBytes(byte[] payload);
 
+    Task<ParsedFootScan> ParseFileAsync(IFormFile file, CancellationToken cancellationToken = default);
+
     ParsedFootScan ParseText(string input);
 }

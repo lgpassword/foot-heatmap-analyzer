@@ -35,10 +35,7 @@ public sealed class IndexModel(IFootScanParser parser, IFootAnalysisService anal
         {
             if (ScanFile is { Length: > 0 })
             {
-                await using var stream = ScanFile.OpenReadStream();
-                using var memory = new MemoryStream();
-                await stream.CopyToAsync(memory);
-                LoadScan(parser.ParseBytes(memory.ToArray()));
+                LoadScan(await parser.ParseFileAsync(ScanFile, HttpContext.RequestAborted));
                 return;
             }
 
