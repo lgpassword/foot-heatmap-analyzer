@@ -537,6 +537,7 @@ button {
 
 .content-body {
   align-content: start;
+  align-items: start;
   display: grid;
   flex: 1;
   gap: 12px;
@@ -653,6 +654,8 @@ button {
 }
 
 .heatmap-panel {
+  align-self: start;
+  height: fit-content;
   min-width: 0;
 }
 
@@ -665,7 +668,13 @@ button {
 }
 
 .heatmap-tab-panel {
+  align-items: center;
+  flex-direction: column;
   width: 100%;
+}
+
+.heatmap-tab-panel:not(.hidden) {
+  display: flex;
 }
 
 .heatmap-row {
