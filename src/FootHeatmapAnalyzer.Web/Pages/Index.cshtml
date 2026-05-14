@@ -38,23 +38,6 @@
             <div class="dashboard-grid" id="dashboardCharts" aria-label="压力中心、步频和左右受力仪表盘"></div>
         </article>
 
-        <article class="card metrics-panel">
-            <div class="card-header">
-                <div class="card-title"><i class="ti ti-dashboard"></i>关键指标</div>
-            </div>
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-label-row"><i class="ti ti-arch"></i>足弓类型</div>
-                    <div class="metric-value warn">@report?.ArchType</div>
-                    <div class="metric-sub">规则分析结果</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-label-row"><i class="ti ti-flame"></i>热点发现</div>
-                    <div class="metric-value ok">@report?.Findings.Count</div>
-                    <div class="metric-sub">指标发现数量</div>
-                </div>
-            </div>
-        </article>
     </aside>
 
     <article class="card heatmap-panel">
@@ -94,6 +77,43 @@
     </article>
 
     <aside class="right-col">
+        <article class="card metrics-panel">
+            <div class="card-header">
+                <div class="card-title"><i class="ti ti-dashboard"></i>关键指标</div>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label-row"><i class="ti ti-arch"></i>足弓类型</div>
+                    <div class="metric-value warn">@report?.ArchType</div>
+                    <div class="metric-sub">规则分析结果</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label-row"><i class="ti ti-flame"></i>热点发现</div>
+                    <div class="metric-value ok">@report?.Findings.Count</div>
+                    <div class="metric-sub">指标发现数量</div>
+                </div>
+            </div>
+        </article>
+
+        <article class="card balance-panel">
+            <div class="card-header">
+                <div class="card-title"><i class="ti ti-scale"></i>左右负载平衡</div>
+                <span class="status-badge badge-ok">实时计算</span>
+            </div>
+            <div class="balance-body">
+                <div class="balance-label-row">
+                    <span class="balance-left-label">左足</span>
+                    <span class="balance-center-label">@report?.CenterOfPressure</span>
+                    <span class="balance-right-label">右足</span>
+                </div>
+                <div class="balance-track" aria-label="左右负载平衡">
+                    <div class="balance-fill-left" style="width:50%"></div>
+                    <div class="balance-fill-right"></div>
+                </div>
+                <div class="balance-note"><i class="ti ti-info-circle"></i>@report?.GaitCycle</div>
+            </div>
+        </article>
+
         <article class="card risk-panel">
             <div class="card-header">
                 <div class="card-title"><i class="ti ti-shield-check"></i>综合风险评估</div>
@@ -138,25 +158,6 @@
         }
     </aside>
 
-    <article class="card balance-panel">
-        <div class="card-header">
-            <div class="card-title"><i class="ti ti-scale"></i>左右负载平衡</div>
-            <span class="status-badge badge-ok">实时计算</span>
-        </div>
-        <div class="balance-body">
-            <div class="balance-label-row">
-                <span class="balance-left-label">左足</span>
-                <span class="balance-center-label">@report?.CenterOfPressure</span>
-                <span class="balance-right-label">右足</span>
-            </div>
-            <div class="balance-track" aria-label="左右负载平衡">
-                <div class="balance-fill-left" style="width:50%"></div>
-                <div class="balance-fill-right"></div>
-            </div>
-            <div class="balance-note"><i class="ti ti-info-circle"></i>@report?.GaitCycle</div>
-        </div>
-    </article>
-
     <article class="card platform-panel col-span-all">
         <div class="card-header">
             <div class="card-title"><i class="ti ti-users-group"></i>租户档案与硬件接入</div>
@@ -188,7 +189,7 @@
         </div>
     </article>
 
-    <article class="card upload-panel">
+    <article class="card upload-panel col-span-2">
         <div class="card-header">
             <div class="card-title"><i class="ti ti-upload"></i>上传新扫描数据</div>
         </div>
@@ -202,7 +203,7 @@
 
     @if (report is not null)
     {
-        <article class="card disclaimer-panel">
+        <article class="card disclaimer-panel col-span-2">
             <div class="card-header">
                 <div class="card-title"><i class="ti ti-info-circle"></i>说明</div>
             </div>
