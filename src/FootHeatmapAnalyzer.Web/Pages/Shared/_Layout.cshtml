@@ -3,46 +3,58 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - 足底热力图分析</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - PressureVision</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/_content/FootHeatmapAnalyzer.UiStyles/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/FootHeatmapAnalyzer.Web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">足底热力图分析</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">分析面板</a>
-                        </li>
-                    </ul>
-                </div>
+    <div class="app-shell">
+        <header class="topbar" role="banner">
+            <a class="brand" asp-area="" asp-page="/Index">
+                <span class="brand-mark"><i class="ti ti-footprint" aria-hidden="true"></i></span>
+                <span>PressureVision</span>
+            </a>
+            <span class="topbar-divider" aria-hidden="true"></span>
+            <span class="topbar-subtitle">足底压力分析系统</span>
+            <div class="topbar-right">
+                <span class="runtime-pill">v2.4.0-RC</span>
+                <button class="topbar-icon-btn" type="button" data-app-action="notify" aria-label="通知"><i class="ti ti-bell" aria-hidden="true"></i></button>
+                <button class="topbar-icon-btn" type="button" data-app-action="help" aria-label="帮助"><i class="ti ti-help-circle" aria-hidden="true"></i></button>
+                <span class="avatar">AI</span>
             </div>
-        </nav>
-    </header>
-    <div class="page-shell">
-        <main role="main" class="pb-3">
+        </header>
+
+        <aside class="sidebar" aria-label="分析导航">
+            <section class="subject-card">
+                <strong>演示患者</strong>
+                <span>PT-2026-0513</span>
+                <p>非诊断性压力热力图分析</p>
+                <em>当前样本</em>
+            </section>
+            <nav class="side-nav">
+                <button class="side-nav-item active" type="button" data-view-target="analysis"><i class="ti ti-activity"></i>压力分析</button>
+                <button class="side-nav-item" type="button" data-view-target="history"><i class="ti ti-chart-line"></i>历史对比</button>
+                <button class="side-nav-item" type="button" data-view-target="export"><i class="ti ti-file-export"></i>导出报告</button>
+                <button class="side-nav-item" type="button" data-view-target="settings"><i class="ti ti-settings"></i>参数设置</button>
+            </nav>
+            <section class="scope-note">
+                <strong>安全边界</strong>
+                <p>仅用于研究、教学和原型演示，不作为疾病诊断或治疗依据。</p>
+            </section>
+        </aside>
+
+        <main class="main" role="main">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - 足底热力图分析。仅用于辅助筛查演示。
-        </div>
-    </footer>
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/_content/FootHeatmapAnalyzer.UiStyles/js/site.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/site.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

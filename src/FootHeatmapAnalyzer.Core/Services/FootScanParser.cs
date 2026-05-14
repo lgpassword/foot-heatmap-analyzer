@@ -6,10 +6,12 @@ namespace FootHeatmapAnalyzer.Core.Services;
 /// <summary>
 /// Parses the demo binary format: width, height, left matrix, right matrix.
 /// </summary>
-public sealed class FootScanParser : IFootScanParser
+public sealed partial class FootScanParser : IFootScanParser
 {
     private const int HeaderLength = 2;
     private const int MaxDimension = 64;
+    // Provides a stable user-facing parse error instead of leaking format exceptions.
+    private const string UnknownTextFormatMessage = "无法识别为十六进制、二进制位串或 Base64 数据。";
 
     public ParsedFootScan ParseBytes(byte[] payload)
     {
@@ -44,34 +46,49 @@ public sealed class FootScanParser : IFootScanParser
             throw new InvalidDataException("输入内容为空。");
         }
 
-        var compact = Regex.Replace(input.Trim(), @"[\s,_:-]+", "");
+        var trimmed = input.Trim();
+        var compact = SeparatorsRegex().Replace(trimmed, "");
         var bytes = IsBinary(compact)
             ? ParseBinaryBits(compact)
             : IsHex(compact)
                 ? Convert.FromHexString(compact)
-                : Convert.FromBase64String(input.Trim());
+                : ParseBase64(trimmed);
 
         return ParseBytes(bytes);
     }
 
     private static FootHeatmap ReadMatrix(byte[] payload, int offset, int width, int height, FootSide side)
     {
-        var rows = new double[height][];
+        var values = new double[width * height];
         for (var y = 0; y < height; y++)
         {
-            rows[y] = new double[width];
             for (var x = 0; x < width; x++)
             {
-                rows[y][x] = payload[offset + (y * width) + x] / 255d;
+                values[(y * width) + x] = payload[offset + (y * width) + x] / 255d;
             }
         }
 
-        return new FootHeatmap(side, width, height, rows);
+        return new FootHeatmap(side, width, height, values);
     }
 
     private static bool IsBinary(string compact) => compact.Length % 8 == 0 && compact.All(c => c is '0' or '1');
 
     private static bool IsHex(string compact) => compact.Length % 2 == 0 && compact.All(Uri.IsHexDigit);
+
+    /// <summary>
+    /// Parses Base64 text and normalizes invalid input to the parser's public error contract.
+    /// </summary>
+    private static byte[] ParseBase64(string trimmed)
+    {
+        try
+        {
+            return Convert.FromBase64String(trimmed);
+        }
+        catch (FormatException ex)
+        {
+            throw new InvalidDataException(UnknownTextFormatMessage, ex);
+        }
+    }
 
     private static byte[] ParseBinaryBits(string compact)
     {
@@ -84,4 +101,9 @@ public sealed class FootScanParser : IFootScanParser
         return bytes;
     }
 
+    /// <summary>
+    /// Matches separators allowed in pasted textual payloads.
+    /// </summary>
+    [GeneratedRegex(@"[\s,_:-]+")]
+    private static partial Regex SeparatorsRegex();
 }

@@ -13,10 +13,10 @@ This project is intended for research, education, prototyping, and open-source c
   - arch type tendency
   - gait loading pattern
   - center-of-pressure balance
-  - diabetic foot early screening signals
-  - foot deformity and skeletal risk signals
-  - rehabilitation and orthotic review hints
-  - neurological asymmetry signals
+  - local hotspot statistics
+  - arch and contact-area distribution
+  - forefoot/heel load distribution
+  - left-right load and pressure-center symmetry
 - No database or persistent storage.
 - Unit tests for parsing and analysis services.
 
@@ -44,6 +44,22 @@ The web form accepts these file types:
 - `.b64` and `.base64`: parsed as Base64 text.
 
 Files are processed in memory and are not stored.
+
+## API Usage
+
+The web host also exposes minimal JSON APIs that reuse the same parser and analysis service as the Razor UI:
+
+```bash
+curl -X POST http://localhost:5000/api/analyze \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary "@samples/sample-scan.bin"
+
+curl -X POST http://localhost:5000/api/analyze/text \
+  -H "Content-Type: text/plain" \
+  --data-binary "@samples/sample-scan.hex"
+```
+
+Invalid payloads return HTTP 400 with a ProblemDetails response.
 
 ## Run Locally
 
@@ -86,7 +102,7 @@ The current recognition pipeline is intentionally modular:
 
 ## Medical Disclaimer
 
-The analysis output is screening-oriented and non-diagnostic. It should not be used to diagnose diabetes, neuropathy, skeletal disease, gait disease, or any other medical condition. Clinical use requires validated sensors, calibrated acquisition, clinical datasets, regulatory review, and evaluation by qualified medical professionals.
+The analysis output describes observable heatmap features such as hotspots, contact distribution, arch index, and left-right load balance. It is screening-oriented and non-diagnostic. It should not be used to diagnose diabetes, neuropathy, skeletal disease, gait disease, or any other medical condition. Clinical use requires validated sensors, calibrated acquisition, clinical datasets, regulatory review, and evaluation by qualified medical professionals.
 
 ## License
 

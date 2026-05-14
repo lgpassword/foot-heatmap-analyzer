@@ -11,7 +11,7 @@ public interface IFootRiskClassifier
 
     string DescribeGait(FootScanMetrics metrics);
 
-    string DescribeBalance(FootScanMetrics metrics);
+    BalanceResult DescribeBalance(FootScanMetrics metrics);
 
-    IReadOnlyList<AnalysisFinding> BuildFindings(FootScanMetrics metrics, string balance);
+    IReadOnlyList<AnalysisFinding> BuildFindings(FootScanMetrics metrics, BalanceResult balance);
 }

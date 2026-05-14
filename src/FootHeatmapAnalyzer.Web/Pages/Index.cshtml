@@ -2,81 +2,316 @@
 @model IndexModel
 @{
     ViewData["Title"] = "足底热力图分析";
+    var left = Model.Scan?.LeftFoot;
+    var right = Model.Scan?.RightFoot;
+    var report = Model.Report;
 }
 
-<section class="hero">
+<section class="content-header">
     <div>
-        <p class="eyebrow">开源 ASP.NET Core 辅助筛查演示</p>
-        <h1>足底热力图分析</h1>
-        <p class="hero-copy">解析足底压力或温度传感器数据，展示左右足热力图，并输出透明、可解释的辅助筛查结果。</p>
+        <h1 data-page-heading><i class="ti ti-activity" aria-hidden="true"></i> 足底压力热力图分析</h1>
+        <div class="breadcrumb-line" data-page-crumb>分析面板 / 热力图识别 / <span>当前样本</span></div>
     </div>
-    <form method="post" enctype="multipart/form-data" class="input-panel">
-        <label for="ScanFile">导入扫描文件</label>
-        <input asp-for="ScanFile" id="ScanFile" type="file" class="form-control" accept=".bin,.dat,.hex,.txt,.b64,.base64" />
-        <label for="ScanText">粘贴十六进制、二进制位串或 Base64 数据</label>
-        <textarea asp-for="ScanText" id="ScanText" rows="5" class="form-control" placeholder="@Model.SampleHex"></textarea>
-        <div class="actions">
-            <button type="submit" class="btn btn-primary">开始分析</button>
-            <button type="button" class="btn btn-outline-secondary" id="loadSample">加载示例</button>
-        </div>
-        <p class="format-note">`.bin`/`.dat` 按原始字节解析，`.hex`/`.txt`/`.b64`/`.base64` 按文本解析。格式：第 0 字节为宽度，第 1 字节为高度，随后依次为左足矩阵和右足矩阵，每个点 1 字节。</p>
-    </form>
+    <div class="header-actions">
+        <button type="button" class="btn btn-teal" data-bs-toggle="modal" data-bs-target="#importScanModal"><i class="ti ti-upload"></i>上传数据</button>
+        <button type="button" class="btn btn-plain" data-app-action="reanalyze"><i class="ti ti-refresh"></i>重新分析</button>
+        <button type="button" class="btn btn-plain" data-app-action="print-report"><i class="ti ti-printer"></i>打印</button>
+        <button type="button" class="btn btn-blue" data-app-action="export-report"><i class="ti ti-file-export"></i>导出报告</button>
+    </div>
 </section>
 
 @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
 {
-    <div class="alert alert-warning" role="alert">@Model.ErrorMessage</div>
+    <div class="alert alert-warning app-alert" role="alert">@Model.ErrorMessage</div>
 }
 
-<section class="workspace" data-heatmap='@Html.Raw(Model.HeatmapJson)' data-sample="@Model.SampleHex">
-    <div class="heatmap-area">
-        <div class="heatmap-card">
-            <div class="panel-heading">
-                <h2>左足</h2>
-                <span>@Model.Scan?.LeftFoot.Width x @Model.Scan?.LeftFoot.Height</span>
-            </div>
-            <canvas id="leftHeatmap" width="360" height="540"></canvas>
-        </div>
-        <div class="heatmap-card">
-            <div class="panel-heading">
-                <h2>右足</h2>
-                <span>@Model.Scan?.RightFoot.Width x @Model.Scan?.RightFoot.Height</span>
-            </div>
-            <canvas id="rightHeatmap" width="360" height="540"></canvas>
-        </div>
-    </div>
+<script type="application/json" id="heatmap-data">@Html.Raw(Model.HeatmapJson)</script>
 
-    @if (Model.Report is not null)
+<section class="content-body app-view" data-view-panel="analysis">
+    <article class="card heatmap-panel col-span-2">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-map-2"></i>双足压力热力图</div>
+            <span class="status-badge badge-info">@left?.Width x @left?.Height / @right?.Width x @right?.Height</span>
+        </div>
+        <div class="card-tabs" role="tablist">
+            <button class="tab tab-active" type="button" role="tab" aria-selected="true" data-viz-tab="combined">合并视图</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-viz-tab="distribution">压力分布</button>
+            <button class="tab" type="button" role="tab" aria-selected="false" data-viz-tab="regions">区域负载</button>
+        </div>
+        <div class="heatmap-body">
+            <div class="heatmap-tab-panel" data-viz-panel="combined">
+                <div class="heatmap-row">
+                    <div class="heatmap-unit merged">
+                        <canvas class="foot-canvas" id="combinedHeatmap" width="760" height="540" aria-label="左右足合并热力图"></canvas>
+                        <span class="foot-label">LEFT / RIGHT</span>
+                    </div>
+                </div>
+                <div class="heatmap-legend" role="list" aria-label="热力图图例">
+                    <div class="legend-item" role="listitem"><span class="legend-dot hot"></span>热点区域 (≥0.88)</div>
+                    <div class="legend-item" role="listitem"><span class="legend-dot mid"></span>中压区域</div>
+                    <div class="legend-item" role="listitem"><span class="legend-dot low"></span>低压区域</div>
+                </div>
+            </div>
+            <div class="heatmap-tab-panel hidden" data-viz-panel="distribution">
+                <div class="heatmap-unit merged">
+                    <canvas class="chart-canvas" id="pressureDistribution" width="760" height="390" aria-label="左右足压力分布曲线"></canvas>
+                    <span class="foot-label">PRESSURE DISTRIBUTION</span>
+                </div>
+            </div>
+            <div class="heatmap-tab-panel hidden" data-viz-panel="regions">
+                <div class="region-grid" id="regionLoadCards" aria-label="区域负载统计"></div>
+            </div>
+        </div>
+    </article>
+
+    <aside class="right-col">
+        <article class="card risk-panel">
+            <div class="card-header">
+                <div class="card-title"><i class="ti ti-shield-check"></i>综合风险评估</div>
+                <span class="status-badge badge-warn">非诊断</span>
+            </div>
+            <div class="risk-body">
+                <div class="risk-ring-wrap" aria-label="非诊断性评估">
+                    <svg width="68" height="68" viewBox="0 0 68 68" aria-hidden="true">
+                        <circle cx="34" cy="34" r="28" fill="none" stroke="var(--surface3)" stroke-width="7" />
+                        <circle cx="34" cy="34" r="28" fill="none" stroke="var(--warn)" stroke-width="7" stroke-dasharray="175.93" stroke-dashoffset="66.85" stroke-linecap="round" />
+                    </svg>
+                    <div class="risk-ring-label"><span class="risk-num">ND</span><span class="risk-denom">非诊断</span></div>
+                </div>
+                <div class="risk-detail">
+                    <div class="risk-level"><i class="ti ti-alert-triangle"></i>@report?.ArchType</div>
+                    <div class="risk-desc">@report?.CenterOfPressure</div>
+                </div>
+            </div>
+        </article>
+
+        @if (report is not null)
+        {
+            <article class="card findings-panel">
+                <div class="card-header">
+                    <div class="card-title"><i class="ti ti-list-check"></i>指标发现</div>
+                    <span class="count-label">@report.Findings.Count 项</span>
+                </div>
+                <div class="findings-list" role="list" aria-label="分析发现列表">
+                    @foreach (var finding in report.Findings)
+                    {
+                        <section class="finding-item" role="listitem">
+                            <span class="finding-icon fi-warn"><i class="ti ti-alert-triangle"></i></span>
+                            <div>
+                                <div class="finding-title">@finding.Category</div>
+                                <div class="finding-desc">@finding.Summary</div>
+                                <span class="finding-tag tag-info">@finding.Level</span>
+                            </div>
+                        </section>
+                    }
+                </div>
+            </article>
+        }
+    </aside>
+
+    <article class="card balance-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-scale"></i>左右负载平衡</div>
+            <span class="status-badge badge-ok">实时计算</span>
+        </div>
+        <div class="balance-body">
+            <div class="balance-label-row">
+                <span class="balance-left-label">左足</span>
+                <span class="balance-center-label">@report?.CenterOfPressure</span>
+                <span class="balance-right-label">右足</span>
+            </div>
+            <div class="balance-track" aria-label="左右负载平衡">
+                <div class="balance-fill-left" style="width:50%"></div>
+                <div class="balance-fill-right"></div>
+            </div>
+            <div class="balance-note"><i class="ti ti-info-circle"></i>@report?.GaitCycle</div>
+        </div>
+    </article>
+
+    <article class="card metrics-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-dashboard"></i>关键指标</div>
+        </div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label-row"><i class="ti ti-arch"></i>足弓类型</div>
+                <div class="metric-value warn">@report?.ArchType</div>
+                <div class="metric-sub">规则分析结果</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label-row"><i class="ti ti-flame"></i>热点发现</div>
+                <div class="metric-value ok">@report?.Findings.Count</div>
+                <div class="metric-sub">指标发现数量</div>
+            </div>
+        </div>
+    </article>
+
+    <article class="card upload-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-upload"></i>上传新扫描数据</div>
+        </div>
+        <button type="button" class="upload-zone" data-bs-toggle="modal" data-bs-target="#importScanModal" aria-label="点击或拖拽上传扫描文件">
+            <i class="ti ti-cloud-upload upload-icon"></i>
+            <span class="upload-title">拖拽文件至此，或点击选择</span>
+            <span class="upload-hint">支持 HEX · BIN · Base64 格式，最大 1 MB</span>
+        </button>
+        <p class="secure-note">数据在当前应用内处理，不上传至外部服务器。</p>
+    </article>
+
+    @if (report is not null)
     {
-        <aside class="analysis-panel">
-            <div class="summary-grid">
-                <div>
-                    <span>足弓类型</span>
-                    <strong>@Model.Report.ArchType</strong>
-                </div>
-                <div>
-                    <span>步态周期</span>
-                    <strong>@Model.Report.GaitCycle</strong>
-                </div>
-                <div>
-                    <span>重心平衡</span>
-                    <strong>@Model.Report.CenterOfPressure</strong>
-                </div>
+        <article class="card disclaimer-panel">
+            <div class="card-header">
+                <div class="card-title"><i class="ti ti-info-circle"></i>说明</div>
             </div>
-            <div class="findings">
-                @foreach (var finding in Model.Report.Findings)
-                {
-                    <article>
-                        <div>
-                            <span class="level">@finding.Level</span>
-                            <h3>@finding.Category</h3>
-                        </div>
-                        <p>@finding.Summary</p>
-                        <small>@finding.Rationale</small>
-                    </article>
-                }
-            </div>
-            <p class="disclaimer">@Model.Report.Disclaimer</p>
-        </aside>
+            <p>@report.Disclaimer</p>
+        </article>
     }
 </section>
+
+<section class="content-body content-body-single app-view hidden" data-view-panel="history">
+    <article class="card timeline-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-chart-line"></i>历史对比</div>
+            <span class="status-badge badge-info">本地会话</span>
+        </div>
+        <div class="timeline-list" id="historyList" aria-label="历史分析记录">
+            <section class="timeline-item current">
+                <span class="timeline-dot"></span>
+                <div>
+                    <strong>当前样本 PT-2026-0513</strong>
+                    <p>已完成非诊断性压力热力图分析，可与后续导入样本进行本地对比。</p>
+                    <div class="mini-metrics">
+                        <span>足弓：@report?.ArchType</span>
+                        <span>发现：@report?.Findings.Count 项</span>
+                        <span>规格：@left?.Width x @left?.Height / @right?.Width x @right?.Height</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </article>
+
+    <article class="card comparison-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-git-compare"></i>对比摘要</div>
+        </div>
+        <div class="placeholder-panel">
+            <i class="ti ti-database-search"></i>
+            <strong>导入新的扫描后可扩展为多样本对比</strong>
+            <p>当前版本先保留本地当前样本摘要，避免生成没有数据依据的历史趋势。</p>
+        </div>
+    </article>
+</section>
+
+<section class="content-body content-body-single app-view hidden" data-view-panel="export">
+    <article class="card export-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-file-export"></i>导出报告</div>
+            <span class="status-badge badge-warn">非诊断</span>
+        </div>
+        <div class="action-grid">
+            <button type="button" class="action-tile" data-app-action="export-heatmap">
+                <i class="ti ti-photo-down"></i>
+                <strong>导出热力图 PNG</strong>
+                <span>保存当前左右足合并图像。</span>
+            </button>
+            <button type="button" class="action-tile" data-app-action="export-report">
+                <i class="ti ti-file-text"></i>
+                <strong>导出文本报告</strong>
+                <span>包含风险摘要、指标发现和安全声明。</span>
+            </button>
+            <button type="button" class="action-tile" data-app-action="print-report">
+                <i class="ti ti-printer"></i>
+                <strong>打印当前报告</strong>
+                <span>调用浏览器打印预览。</span>
+            </button>
+        </div>
+    </article>
+
+    <article class="card report-preview-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-notes"></i>报告预览</div>
+        </div>
+        <div class="report-preview" id="reportPreview">
+            <h2>足底压力热力图分析报告</h2>
+            <p>样本：PT-2026-0513</p>
+            <p>足弓类型：@report?.ArchType</p>
+            <p>左右负载：@report?.CenterOfPressure</p>
+            <p>步态提示：@report?.GaitCycle</p>
+            @if (report is not null)
+            {
+                <ul>
+                    @foreach (var finding in report.Findings)
+                    {
+                        <li>@finding.Category：@finding.Summary</li>
+                    }
+                </ul>
+                <p>@report.Disclaimer</p>
+            }
+        </div>
+    </article>
+</section>
+
+<section class="content-body content-body-single app-view hidden" data-view-panel="settings">
+    <article class="card settings-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-settings"></i>参数设置</div>
+            <span class="status-badge badge-info">显示参数</span>
+        </div>
+        <div class="settings-grid">
+            <label class="setting-row" for="DotSize">
+                <span>点径</span>
+                <input id="DotSize" type="range" min="1" max="4" step="0.5" value="2" data-setting="dotSize" />
+            </label>
+            <label class="setting-row" for="DotSpacing">
+                <span>点距</span>
+                <input id="DotSpacing" type="range" min="4" max="9" step="1" value="6" data-setting="dotSpacing" />
+            </label>
+            <label class="setting-row" for="Contrast">
+                <span>对比度</span>
+                <input id="Contrast" type="range" min="0.75" max="1.5" step="0.05" value="1" data-setting="contrast" />
+            </label>
+            <label class="setting-check" for="ShowLabels">
+                <input id="ShowLabels" type="checkbox" checked data-setting="showLabels" />
+                <span>显示足别和色标</span>
+            </label>
+        </div>
+        <div class="settings-actions">
+            <button type="button" class="btn btn-teal" data-app-action="apply-settings"><i class="ti ti-check"></i>应用显示参数</button>
+            <button type="button" class="btn btn-plain" data-app-action="reset-settings"><i class="ti ti-restore"></i>恢复默认</button>
+        </div>
+    </article>
+
+    <article class="card settings-panel">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-shield-check"></i>安全边界</div>
+        </div>
+        <div class="settings-note">
+            当前参数只影响页面显示，不改变分析算法阈值，也不会把数据上传到外部服务器。
+        </div>
+    </article>
+</section>
+
+<div class="app-toast" data-app-toast role="status" aria-live="polite"></div>
+
+<div class="modal fade" id="importScanModal" tabindex="-1" aria-labelledby="importScanModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" enctype="multipart/form-data" class="modal-content import-modal">
+            <div class="modal-header">
+                <h2 class="modal-title fs-5" id="importScanModalLabel">导入扫描数据</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+            </div>
+            <div class="modal-body">
+                <label for="ScanFile">扫描文件</label>
+                <input asp-for="ScanFile" id="ScanFile" type="file" class="form-control" accept=".bin,.dat,.hex,.txt,.b64,.base64" />
+                <label for="ScanText">文本数据</label>
+                <textarea asp-for="ScanText" id="ScanText" rows="6" class="form-control" placeholder="粘贴十六进制、二进制位串或 Base64 数据"></textarea>
+                <p class="format-note">`.bin`/`.dat` 按原始字节解析，`.hex`/`.txt`/`.b64`/`.base64` 按文本解析。格式：第 0 字节为宽度，第 1 字节为高度，随后依次为左足矩阵和右足矩阵，每个点 1 字节。</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="submit" class="btn btn-teal">开始分析</button>
+            </div>
+        </form>
+    </div>
+</div>

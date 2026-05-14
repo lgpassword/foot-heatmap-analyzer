@@ -56,8 +56,8 @@ public sealed class IndexModel(IFootScanParser parser, IFootAnalysisService anal
         Report = analysisService.Analyze(scan);
         HeatmapJson = JsonSerializer.Serialize(new
         {
-            left = scan.LeftFoot.Values,
-            right = scan.RightFoot.Values
+            left = scan.LeftFoot.ToRows(),
+            right = scan.RightFoot.ToRows()
         });
     }
 
@@ -68,10 +68,9 @@ public sealed class IndexModel(IFootScanParser parser, IFootAnalysisService anal
             throw new InvalidDataException($"上传文件不能超过 {MaxUploadBytes / 1024} KB。");
         }
 
+        var bytes = new byte[file.Length];
         await using var stream = file.OpenReadStream();
-        using var memory = new MemoryStream();
-        await stream.CopyToAsync(memory, cancellationToken);
-        var bytes = memory.ToArray();
+        await stream.ReadExactlyAsync(bytes, cancellationToken);
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
 
         return extension switch
