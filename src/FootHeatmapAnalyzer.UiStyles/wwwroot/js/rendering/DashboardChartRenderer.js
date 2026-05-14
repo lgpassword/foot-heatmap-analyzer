@@ -50,16 +50,24 @@ export class DashboardChartRenderer {
         });
     }
 
-    // 渲染左右脚受力平衡仪表图。
+    // 渲染左右脚受力平衡条，避免窄栏仪表盘刻度和文字重叠。
     renderBalance(element, leftMatrix, rightMatrix) {
-        const chart = globalThis.echarts.init(element);
         const leftLoad = leftMatrix.flat().reduce((sum, value) => sum + value, 0);
         const rightLoad = rightMatrix.flat().reduce((sum, value) => sum + value, 0);
         const leftPercent = Math.round((leftLoad / Math.max(leftLoad + rightLoad, 0.001)) * 100);
-        chart.setOption({
-            title: { text: "左右受力", left: 12, textStyle: { fontSize: 13 } },
-            series: [{ type: "gauge", progress: { show: true }, data: [{ value: leftPercent, name: "左脚%" }] }]
-        });
+        const rightPercent = 100 - leftPercent;
+        element.classList.add("load-balance-card");
+        element.innerHTML = `
+            <div class="load-balance-title">左右受力</div>
+            <div class="load-balance-values">
+                <strong>左 ${leftPercent}%</strong>
+                <strong>右 ${rightPercent}%</strong>
+            </div>
+            <div class="load-balance-track" aria-label="左右脚受力平衡">
+                <span class="load-balance-left" style="width:${leftPercent}%"></span>
+                <span class="load-balance-right" style="width:${rightPercent}%"></span>
+            </div>
+            <div class="load-balance-note">越接近 50 / 50，左右负载越均衡</div>`;
     }
 
     // 计算矩阵压力中心相对居中位置。

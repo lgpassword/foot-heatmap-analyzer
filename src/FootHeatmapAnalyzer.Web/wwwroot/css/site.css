@@ -67,6 +67,56 @@ button {
   min-width: 0;
 }
 
+.load-balance-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 16px;
+}
+
+.load-balance-title {
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.load-balance-values {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.load-balance-values strong {
+  color: var(--navy);
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.load-balance-track {
+  background: var(--surface3);
+  border-radius: 999px;
+  display: flex;
+  height: 18px;
+  overflow: hidden;
+}
+
+.load-balance-left {
+  background: var(--teal);
+}
+
+.load-balance-right {
+  background: var(--info);
+}
+
+.load-balance-note {
+  color: var(--text-sec);
+  font-size: 11px;
+  margin-top: 10px;
+}
+
 .platform-grid {
   display: grid;
   gap: 14px;
