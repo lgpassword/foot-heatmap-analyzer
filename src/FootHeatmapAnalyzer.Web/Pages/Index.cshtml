@@ -102,15 +102,15 @@
             </div>
             <div class="balance-body">
                 <div class="balance-label-row">
-                    <span class="balance-left-label">左足</span>
-                    <span class="balance-center-label">@report?.CenterOfPressure</span>
-                    <span class="balance-right-label">右足</span>
+                    <span class="balance-left-label" data-balance-left>左足 --%</span>
+                    <span class="balance-center-label" data-balance-state>等待计算</span>
+                    <span class="balance-right-label" data-balance-right>右足 --%</span>
                 </div>
                 <div class="balance-track" aria-label="左右负载平衡">
-                    <div class="balance-fill-left" style="width:50%"></div>
+                    <div class="balance-fill-left" data-balance-fill-left style="width:50%"></div>
                     <div class="balance-fill-right"></div>
                 </div>
-                <div class="balance-note"><i class="ti ti-info-circle"></i>@report?.GaitCycle</div>
+                <div class="balance-note" data-balance-note><i class="ti ti-info-circle"></i>根据当前热力图实时计算左右受力。</div>
             </div>
         </article>
 

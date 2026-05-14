@@ -926,15 +926,16 @@ canvas {
 }
 
 .balance-label-row {
-  align-items: baseline;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 7px;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: 1fr 1fr;
+  margin-bottom: 9px;
 }
 
 .balance-left-label,
 .balance-right-label {
-  font-size: 12px;
+  font-family: "IBM Plex Mono", Consolas, monospace;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -944,15 +945,14 @@ canvas {
 
 .balance-right-label {
   color: var(--accent);
+  text-align: right;
 }
 
 .balance-center-label {
   color: var(--text-hint);
-  font-size: 10px;
-  max-width: 56%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 11px;
+  grid-column: 1 / -1;
+  white-space: normal;
 }
 
 .balance-track {
@@ -988,9 +988,10 @@ canvas {
   align-items: center;
   color: var(--warn);
   display: flex;
-  font-size: 10.5px;
+  font-size: 11px;
   gap: 4px;
   margin-top: 8px;
+  white-space: normal;
 }
 
 .metrics-grid {

@@ -2,6 +2,7 @@ import { HeatmapDataStore } from "../data/HeatmapDataStore.js";
 import { GpuHeatmapRenderer } from "../rendering/GpuHeatmapRenderer.js";
 import { DistributionChartRenderer } from "../rendering/DistributionChartRenderer.js";
 import { DashboardChartRenderer } from "../rendering/DashboardChartRenderer.js";
+import { BalanceSummaryRenderer } from "../rendering/BalanceSummaryRenderer.js";
 import { RegionLoadRenderer } from "../rendering/RegionLoadRenderer.js";
 import { ActionController } from "../ui/ActionController.js";
 import { HeatmapTabController } from "../ui/HeatmapTabController.js";
@@ -31,6 +32,9 @@ export class FootHeatmapApplication {
     // 保存 ECharts 仪表盘渲染器。
     dashboardRenderer;
 
+    // 保存右侧左右负载摘要渲染器。
+    balanceRenderer;
+
     // 保存当前显示参数，所有绘图模块共用。
     settings;
 
@@ -47,6 +51,7 @@ export class FootHeatmapApplication {
         this.heatmapRenderer = new GpuHeatmapRenderer(document);
         this.distributionRenderer = new DistributionChartRenderer(document);
         this.dashboardRenderer = new DashboardChartRenderer(document);
+        this.balanceRenderer = new BalanceSummaryRenderer(document);
         this.regionRenderer = new RegionLoadRenderer(document);
     }
 
@@ -73,6 +78,7 @@ export class FootHeatmapApplication {
         this.heatmapRenderer.drawCombinedHeatmap("combinedHeatmap", payload.left, payload.right, this.settings);
         this.distributionRenderer.drawPressureDistribution("pressureDistribution", payload.left, payload.right);
         this.dashboardRenderer.render("dashboardCharts", payload.left, payload.right);
+        this.balanceRenderer.render(payload.left, payload.right);
         this.regionRenderer.renderRegionCards("regionLoadCards", payload.left, payload.right);
     }
 }
