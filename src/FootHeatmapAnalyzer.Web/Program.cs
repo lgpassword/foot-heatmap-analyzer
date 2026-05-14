@@ -5,8 +5,15 @@ using FootHeatmapAnalyzer.GaitAnalysis.Models;
 using FootHeatmapAnalyzer.GaitAnalysis.Services;
 using FootHeatmapAnalyzer.SensorAlignment.Models;
 using FootHeatmapAnalyzer.SensorAlignment.Services;
+using FootHeatmapAnalyzer.Web.Api;
+using FootHeatmapAnalyzer.Web.Dashboard;
 using FootHeatmapAnalyzer.Web.Hubs;
+using FootHeatmapAnalyzer.Web.Identity;
+using FootHeatmapAnalyzer.Web.Reports;
+using FootHeatmapAnalyzer.Web.Tenancy;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 // Keeps framework-level request limits aligned with the page upload limit.
@@ -15,6 +22,19 @@ const long maxUploadBytes = 1024 * 1024;
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
 builder.Services.AddFootHeatmapAnalyzer();
+builder.Services.AddDbContext<ApplicationIdentityDbContext>(options => options.UseInMemoryDatabase("FootHeatmapIdentity"));
+builder.Services.AddIdentityCore<ApplicationUser>()
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationIdentityDbContext>()
+    .AddSignInManager();
+builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme)
+    .AddIdentityCookies();
+builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IProfileStore, InMemoryProfileStore>();
+builder.Services.AddScoped<ITenantContextAccessor, HttpTenantContextAccessor>();
+builder.Services.AddSingleton<IDashboardService, DashboardService>();
+builder.Services.AddSingleton<IReportGenerator, QuestPdfReportGenerator>();
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = maxUploadBytes;
@@ -38,7 +58,7 @@ app.Use(async (context, next) =>
 {
     context.Response.Headers["X-Content-Type-Options"] = "nosniff";
     context.Response.Headers["Referrer-Policy"] = "no-referrer";
-    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; script-src 'self'";
+    context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; connect-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; script-src 'self' https://cdn.jsdelivr.net";
     await next();
 });
 
@@ -46,6 +66,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapPost("/api/analyze", async (HttpRequest request, IFootScanParser parser, IFootAnalysisService analysisService) =>
@@ -98,6 +119,66 @@ app.MapPost("/api/sensors/align", (SensorAlignmentRequest request, ISensorAlignm
         return Results.Ok(alignmentService.Align(request.Pressure, request.Accelerometer));
     }
     catch (ArgumentException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+    }
+});
+app.MapGet("/api/profiles", (ITenantContextAccessor tenantAccessor, IProfileStore profileStore) =>
+{
+    return Results.Ok(profileStore.List(tenantAccessor.GetCurrent()));
+});
+app.MapPost("/api/profiles", (CreateProfileRequest request, ITenantContextAccessor tenantAccessor, IProfileStore profileStore) =>
+{
+    try
+    {
+        return Results.Created("/api/profiles", profileStore.Create(tenantAccessor.GetCurrent(), request));
+    }
+    catch (ArgumentException ex)
+    {
+        return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
+    }
+});
+app.MapPost("/api/hardware/scans", (HardwareScanRequest request, IFootScanParser parser, IFootAnalysisService analysisService, IHeatmapFeatureExtractor featureExtractor, IDashboardService dashboardService, ITenantContextAccessor tenantAccessor) =>
+{
+    return ParsePayload(() =>
+    {
+        var tenant = string.IsNullOrWhiteSpace(request.TenantId) ? tenantAccessor.GetCurrent().TenantId : request.TenantId;
+        var scan = request.PayloadEncoding.Equals("base64", StringComparison.OrdinalIgnoreCase)
+            ? parser.ParseBytes(Convert.FromBase64String(request.Payload))
+            : parser.ParseText(request.Payload);
+        var report = analysisService.Analyze(scan);
+        var metrics = featureExtractor.Extract(scan);
+
+        return new HardwareScanResponse(
+            Convert.ToHexString(Guid.NewGuid().ToByteArray()),
+            request.DeviceId,
+            tenant,
+            request.ProfileId,
+            report,
+            HeatmapRenderFrame.FromScan(scan, request.CapturedAt),
+            dashboardService.Build(metrics));
+    });
+});
+app.MapPost("/api/dashboard", async (HttpRequest request, IFootScanParser parser, IHeatmapFeatureExtractor featureExtractor, IDashboardService dashboardService) =>
+{
+    using var reader = new StreamReader(request.Body);
+    var text = await reader.ReadToEndAsync(request.HttpContext.RequestAborted);
+
+    return ParsePayload(() => dashboardService.Build(featureExtractor.Extract(parser.ParseText(text))));
+});
+app.MapPost("/api/reports/pdf", async (HttpRequest request, IFootScanParser parser, IFootAnalysisService analysisService, IHeatmapFeatureExtractor featureExtractor, IDashboardService dashboardService, IReportGenerator reportGenerator) =>
+{
+    using var reader = new StreamReader(request.Body);
+    var text = await reader.ReadToEndAsync(request.HttpContext.RequestAborted);
+
+    try
+    {
+        var scan = parser.ParseText(text);
+        var report = analysisService.Analyze(scan);
+        var dashboard = dashboardService.Build(featureExtractor.Extract(scan));
+        return Results.File(reportGenerator.Generate(report, dashboard), "application/pdf", "foot-pressure-report.pdf");
+    }
+    catch (Exception ex) when (ex is InvalidDataException or FormatException)
     {
         return Results.Problem(ex.Message, statusCode: StatusCodes.Status400BadRequest);
     }

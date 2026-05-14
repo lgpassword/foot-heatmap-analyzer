@@ -53,6 +53,21 @@ button {
   font: inherit;
 }
 
+.dashboard-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 220px;
+}
+
+.dashboard-chart {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  height: 220px;
+  min-width: 0;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);

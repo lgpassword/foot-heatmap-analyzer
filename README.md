@@ -22,6 +22,10 @@ This project is intended for research, education, prototyping, and open-source c
 - Browser-side WebGL heatmap rendering with bicubic interpolation and compact raw pressure frames.
 - Server-side ONNX Runtime integration point for cloud-based gait sequence recognition.
 - Dynamic Time Warping alignment for pressure and accelerometer time-series uploads.
+- Tenant-scoped patient and athlete profile management using ASP.NET Core Identity boundaries.
+- Open REST hardware ingestion API for external pressure sensing devices.
+- ECharts dashboard payloads for CoP offset, cadence proxy, and left/right load balance.
+- QuestPDF report generation for printable pressure analysis PDFs.
 - No database or persistent storage.
 - Unit tests for parsing and analysis services.
 
@@ -66,6 +70,19 @@ curl -X POST http://localhost:5000/api/analyze/text \
 curl -X POST http://localhost:5000/api/render-frame/text \
   -H "Content-Type: text/plain" \
   --data-binary "@samples/sample-scan.hex"
+
+curl -X POST http://localhost:5000/api/hardware/scans \
+  -H "Content-Type: application/json" \
+  -d '{"deviceId":"demo-device","tenantId":"demo","profileId":"athlete-1","payloadEncoding":"hex","payload":"<HEX_PAYLOAD>","capturedAt":"2026-05-14T00:00:00Z"}'
+
+curl -X POST http://localhost:5000/api/dashboard \
+  -H "Content-Type: text/plain" \
+  --data-binary "@samples/sample-scan.hex"
+
+curl -X POST http://localhost:5000/api/reports/pdf \
+  -H "Content-Type: text/plain" \
+  --data-binary "@samples/sample-scan.hex" \
+  --output foot-pressure-report.pdf
 ```
 
 Invalid payloads return HTTP 400 with a ProblemDetails response.
@@ -75,6 +92,12 @@ Invalid payloads return HTTP 400 with a ProblemDetails response.
 `/api/gait/analyze` accepts timestamped pressure sequence feature vectors and runs the configured ONNX model through `FootHeatmapAnalyzer.GaitAnalysis`. A model path must be configured before the endpoint can return predictions.
 
 `/api/sensors/align` accepts pressure load samples and phone accelerometer samples, then aligns non-uniform time series with Dynamic Time Warping through `FootHeatmapAnalyzer.SensorAlignment`.
+
+`/api/profiles` manages tenant-scoped patient or athlete profiles. The current demo resolves tenants from Identity claims or `X-Tenant-Id`; production deployments should replace the in-memory store with a persistent database.
+
+`/api/hardware/scans` is the open hardware integration endpoint. Devices submit metadata plus hex or Base64 pressure payloads and receive analysis, render-frame, and dashboard responses.
+
+`/api/dashboard` returns chart data for ECharts. `/api/reports/pdf` returns a QuestPDF-generated printable PDF report.
 
 ## Run Locally
 

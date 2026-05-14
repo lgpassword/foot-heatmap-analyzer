@@ -4,6 +4,9 @@ using System.Text;
 using FootHeatmapAnalyzer.Core.Models;
 using FootHeatmapAnalyzer.GaitAnalysis.Models;
 using FootHeatmapAnalyzer.SensorAlignment.Models;
+using FootHeatmapAnalyzer.Web.Api;
+using FootHeatmapAnalyzer.Web.Dashboard;
+using FootHeatmapAnalyzer.Web.Tenancy;
 
 namespace FootHeatmapAnalyzer.Tests;
 
@@ -120,6 +123,83 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
         var response = await client.PostAsync("/hubs/heatmap/negotiate?negotiateVersion=1", null);
 
         response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task ProfileApi_IsolatesProfilesByTenantHeader()
+    {
+        var client = factory.CreateClient();
+        using var create = new HttpRequestMessage(HttpMethod.Post, "/api/profiles")
+        {
+            Content = JsonContent.Create(new CreateProfileRequest(ProfileKind.Patient, "Demo Patient", null, null))
+        };
+        create.Headers.Add("X-Tenant-Id", "clinic-a");
+
+        var created = await client.SendAsync(create);
+
+        created.EnsureSuccessStatusCode();
+
+        using var listA = new HttpRequestMessage(HttpMethod.Get, "/api/profiles");
+        listA.Headers.Add("X-Tenant-Id", "clinic-a");
+        using var listB = new HttpRequestMessage(HttpMethod.Get, "/api/profiles");
+        listB.Headers.Add("X-Tenant-Id", "clinic-b");
+
+        var tenantA = await (await client.SendAsync(listA)).Content.ReadFromJsonAsync<ManagedProfile[]>();
+        var tenantB = await (await client.SendAsync(listB)).Content.ReadFromJsonAsync<ManagedProfile[]>();
+
+        Assert.Single(tenantA!);
+        Assert.Empty(tenantB!);
+    }
+
+    [Fact]
+    public async Task HardwareScanApi_ReturnsAnalysisDashboardAndRenderFrame()
+    {
+        var client = factory.CreateClient();
+        var request = new HardwareScanRequest(
+            "device-1",
+            "tenant-1",
+            "profile-1",
+            "hex",
+            Convert.ToHexString(ParsedFootScan.CreateSampleBytes()),
+            DateTimeOffset.UnixEpoch);
+
+        var response = await client.PostAsJsonAsync("/api/hardware/scans", request);
+        var result = await response.Content.ReadFromJsonAsync<HardwareScanResponse>();
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(result);
+        Assert.Equal("device-1", result.DeviceId);
+        Assert.NotNull(result.Report);
+        Assert.False(string.IsNullOrWhiteSpace(result.RenderFrame.Left.Data));
+        Assert.NotNull(result.Dashboard);
+    }
+
+    [Fact]
+    public async Task DashboardApi_ReturnsChartPayload()
+    {
+        var client = factory.CreateClient();
+        using var content = new StringContent(Convert.ToHexString(ParsedFootScan.CreateSampleBytes()), Encoding.UTF8, "text/plain");
+
+        var response = await client.PostAsync("/api/dashboard", content);
+        var dashboard = await response.Content.ReadFromJsonAsync<DashboardPayload>();
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(dashboard);
+        Assert.Equal(4, dashboard.CenterOfPressureOffset.Values.Length);
+    }
+
+    [Fact]
+    public async Task PdfReportApi_ReturnsPdf()
+    {
+        var client = factory.CreateClient();
+        using var content = new StringContent(Convert.ToHexString(ParsedFootScan.CreateSampleBytes()), Encoding.UTF8, "text/plain");
+
+        var response = await client.PostAsync("/api/reports/pdf", content);
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+
+        response.EnsureSuccessStatusCode();
+        Assert.Equal("application/pdf", response.Content.Headers.ContentType?.MediaType);
+        Assert.True(bytes.Length > 100);
     }
 
     [Fact]
