@@ -209,17 +209,21 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
     }
 
     [Fact]
-    public async Task PostGaitAnalyze_ReturnsBadRequestWhenModelIsNotConfigured()
+    public async Task PostGaitAnalyze_ReturnsBuiltInPredictionWhenModelIsNotConfigured()
     {
         var client = factory.CreateClient();
         var sequence = new[]
         {
-            new PressureSequenceFrame(TimeSpan.Zero, [1f, .5f])
+            new PressureSequenceFrame(TimeSpan.Zero, [.8f, .8f, .4f, .4f]),
+            new PressureSequenceFrame(TimeSpan.FromMilliseconds(20), [.75f, .78f, .42f, .41f])
         };
 
         var response = await client.PostAsJsonAsync("/api/gait/analyze", sequence);
+        var prediction = await response.Content.ReadFromJsonAsync<GaitPrediction>();
 
-        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(prediction);
+        Assert.False(string.IsNullOrWhiteSpace(prediction.Label));
     }
 
     [Fact]
@@ -242,5 +246,10 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
         response.EnsureSuccessStatusCode();
         Assert.NotNull(result);
         Assert.NotEmpty(result.Path);
+        Assert.All(result.Path.Zip(result.Path.Skip(1)), pair =>
+        {
+            Assert.True(pair.First.PressureIndex <= pair.Second.PressureIndex);
+            Assert.True(pair.First.AccelerometerIndex <= pair.Second.AccelerometerIndex);
+        });
     }
 }

@@ -89,9 +89,9 @@ curl -X POST http://localhost:5000/api/reports/pdf \
 
 `/api/render-frame` 和 `/api/render-frame/text` 返回紧凑的 base64 raw pressure 阵列，供浏览器端 GPU 或 Canvas 渲染使用。响应会声明双三次插值，让客户端本地渲染热力图，而不是依赖服务端生成图片。SignalR 客户端也可以连接 `/hubs/heatmap`，接收用于实时渲染的 `heatmapFrame` 载荷。
 
-`/api/gait/analyze` 接收带时间戳的压力序列特征向量，并通过 `FootHeatmapAnalyzer.GaitAnalysis` 调用已配置的 ONNX 模型。必须先配置模型路径，端点才会返回预测结果。
+`/api/gait/analyze` 接收带时间戳的压力序列特征向量，并通过 `FootHeatmapAnalyzer.GaitAnalysis` 执行步态分类。如果已配置 ONNX 模型路径且文件存在，则使用 ONNX Runtime；否则使用内置的确定性序列分类器和中文标签，因此端点开箱即可返回识别结果。
 
-`/api/sensors/align` 接收压力负载样本和手机加速度计样本，并通过 `FootHeatmapAnalyzer.SensorAlignment` 使用 DTW 对非等频采样时间序列进行对齐。
+`/api/sensors/align` 接收压力负载样本和手机加速度计样本，并通过 `FootHeatmapAnalyzer.SensorAlignment` 使用完整 DTW 代价矩阵和单调回溯路径，对非等频采样时间序列进行对齐。
 
 `/api/profiles` 管理租户隔离的患者或运动员档案。当前演示从 Identity claims 或 `X-Tenant-Id` 解析租户；生产部署应把内存存储替换为持久化数据库。
 

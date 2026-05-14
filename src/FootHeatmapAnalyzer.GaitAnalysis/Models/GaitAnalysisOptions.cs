@@ -23,5 +23,5 @@ public sealed class GaitAnalysisOptions
     /// <summary>
     /// Ordered class labels corresponding to model output indices.
     /// </summary>
-    public string[] Labels { get; set; } = ["normal", "asymmetry", "forefoot_overload", "heel_overload"];
+    public string[] Labels { get; set; } = ["正常步态", "左右不对称", "前足负载偏高", "足跟负载偏高"];
 }

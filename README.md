@@ -89,9 +89,9 @@ Invalid payloads return HTTP 400 with a ProblemDetails response.
 
 `/api/render-frame` and `/api/render-frame/text` return compact base64-encoded raw pressure arrays for browser-side GPU or Canvas rendering. The payload advertises bicubic interpolation so clients can render locally instead of receiving server-generated images. SignalR clients can also connect to `/hubs/heatmap` and receive `heatmapFrame` payloads for live rendering.
 
-`/api/gait/analyze` accepts timestamped pressure sequence feature vectors and runs the configured ONNX model through `FootHeatmapAnalyzer.GaitAnalysis`. A model path must be configured before the endpoint can return predictions.
+`/api/gait/analyze` accepts timestamped pressure sequence feature vectors and runs gait classification through `FootHeatmapAnalyzer.GaitAnalysis`. If an ONNX model path is configured and the model file exists, ONNX Runtime is used; otherwise the service uses a built-in deterministic sequence classifier with Chinese labels so the endpoint works out of the box.
 
-`/api/sensors/align` accepts pressure load samples and phone accelerometer samples, then aligns non-uniform time series with Dynamic Time Warping through `FootHeatmapAnalyzer.SensorAlignment`.
+`/api/sensors/align` accepts pressure load samples and phone accelerometer samples, then aligns non-uniform time series with a full Dynamic Time Warping cost matrix and monotonic backtrace through `FootHeatmapAnalyzer.SensorAlignment`.
 
 `/api/profiles` manages tenant-scoped patient or athlete profiles. The current demo resolves tenants from Identity claims or `X-Tenant-Id`; production deployments should replace the in-memory store with a persistent database.
 
