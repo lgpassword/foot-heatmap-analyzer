@@ -6,6 +6,8 @@ Foot Heatmap Analyzer is an open-source ASP.NET Core demo for parsing binary pla
 
 This project is intended for research, education, prototyping, and open-source collaboration. It is not a medical device and does not provide diagnosis.
 
+Algorithm, data-flow, and engineering boundary details are documented in [算法与工程说明](docs/ALGORITHMS.zh-CN.md).
+
 ## Implementation Status
 
 | Component | Status |
@@ -42,6 +44,14 @@ This project is intended for research, education, prototyping, and open-source c
 - QuestPDF report generation for printable pressure analysis PDFs.
 - No database or persistent storage.
 - Unit tests for parsing and analysis services.
+
+## Practical Advantages
+
+- Parsing, feature extraction, rule-based screening, visualization, and reporting are separated into focused layers.
+- Browser-side WebGL rendering keeps the backend focused on compact raw pressure data instead of server-generated images.
+- Screening output is traceable to matrix-derived features, which helps debugging and downstream integration.
+- Dashboard and PDF reports reuse the same computed metrics, reducing inconsistencies between presentation surfaces.
+- ONNX gait analysis is an explicit integration point; when no model is configured, the API returns a clear placeholder instead of pretending to predict.
 
 ## Binary Input Format
 
