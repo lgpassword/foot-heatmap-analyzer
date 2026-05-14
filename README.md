@@ -1,5 +1,7 @@
 # Foot Heatmap Analyzer
 
+Language: English | [简体中文](README.zh-CN.md)
+
 Foot Heatmap Analyzer is an open-source ASP.NET Core demo for parsing binary plantar pressure or temperature scans, rendering left and right foot heatmaps, and producing transparent auxiliary screening signals.
 
 This project is intended for research, education, prototyping, and open-source collaboration. It is not a medical device and does not provide diagnosis.

@@ -1,0 +1,111 @@
+# Foot Heatmap Analyzer
+
+语言：[English](README.md) | 简体中文
+
+Foot Heatmap Analyzer 是一个开源 ASP.NET Core 演示项目，用于解析二进制足底压力或温度扫描数据，渲染左右足热力图，并输出透明、可解释的辅助筛查信号。
+
+本项目适用于研究、教学、原型验证和开源协作。它不是医疗器械，也不提供诊断结论。
+
+## 功能
+
+- ASP.NET Core Razor Pages Web 界面。
+- 支持导入 `.bin`、`.dat`、`.hex`、`.txt`、`.b64` 和 `.base64` 扫描文件，也支持粘贴十六进制、二进制位串或 Base64 数据。
+- 使用 HTML canvas 渲染左足和右足热力图。
+- 输出非诊断性的筛查信息，包括：
+  - 足弓类型倾向
+  - 步态负载模式
+  - 压力中心平衡
+  - 局部热点统计
+  - 足弓与接触面积分布
+  - 前足/足跟负载分布
+  - 左右负载与压力中心对称性
+- 无数据库，不做持久化存储。
+- 包含解析和分析服务的单元测试。
+
+## 二进制输入格式
+
+当前演示协议刻意保持简单：
+
+```text
+byte 0: 宽度
+byte 1: 高度
+接下来的 width * height 字节: 左足矩阵值，范围 0-255
+再接下来的 width * height 字节: 右足矩阵值，范围 0-255
+```
+
+示例数据可以用十六进制、Base64 或连续二进制位串粘贴。
+
+`samples/` 目录提供了可直接使用的合成参考扫描数据，包括 `.hex`、`.bin` 和 CSV 矩阵格式。
+
+## 文件导入
+
+Web 表单支持以下文件类型：
+
+- `.bin` 和 `.dat`：按原始协议字节解析。
+- `.hex` 和 `.txt`：按文本解析，可包含十六进制、二进制位串或 Base64。
+- `.b64` 和 `.base64`：按 Base64 文本解析。
+
+文件只在内存中处理，不会保存到磁盘。
+
+## API 使用
+
+Web 主机还提供最小 JSON API，与 Razor UI 复用同一套解析器和分析服务：
+
+```bash
+curl -X POST http://localhost:5000/api/analyze \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary "@samples/sample-scan.bin"
+
+curl -X POST http://localhost:5000/api/analyze/text \
+  -H "Content-Type: text/plain" \
+  --data-binary "@samples/sample-scan.hex"
+```
+
+无效载荷会返回 HTTP 400，并附带 ProblemDetails 响应。
+
+## 本地运行
+
+```powershell
+dotnet restore
+dotnet build
+dotnet test
+dotnet run --project src\FootHeatmapAnalyzer.Web
+```
+
+然后打开 ASP.NET Core 在终端中输出的本地地址。
+
+## 项目结构
+
+```text
+src/FootHeatmapAnalyzer.Core/
+  Models/       热力图、指标和报告相关领域模型
+  Services/     核心解析器、服务契约和报告编排
+src/FootHeatmapAnalyzer.Algorithms/
+  Services/     热力图特征提取和筛查分类器
+src/FootHeatmapAnalyzer.Composition/
+  *.cs          统一依赖注入注册
+src/FootHeatmapAnalyzer.UiStyles/
+  wwwroot/      共享 CSS 和 JavaScript 静态资源
+src/FootHeatmapAnalyzer.Web/
+  Pages/        Razor Pages UI 和上传处理
+tests/FootHeatmapAnalyzer.Tests/
+  解析器、算法和服务注册测试
+```
+
+## 识别流程
+
+当前识别流程保持模块化：
+
+- `Core` 中的 `FootScanParser`：将字节或粘贴的载荷解析为归一化热力图矩阵。
+- `Algorithms` 中的 `HeatmapFeatureExtractor`：提取区域负载、足弓指数、接触面积、热点和压力中心特征。
+- `Algorithms` 中的 `FootRiskClassifier`：将特征转换为透明、非诊断性的筛查分类。
+- `Core` 中的 `FootAnalysisService`：通过接口编排特征提取和分类，生成最终报告。
+- `Composition` 中的 `AddFootHeatmapAnalyzer`：统一注册解析器、算法、分类器和分析服务。
+
+## 医疗免责声明
+
+分析输出描述的是可观察的热力图特征，例如热点、接触分布、足弓指数和左右负载平衡。它面向筛查演示，不具有诊断用途。它不应被用于诊断糖尿病、神经病变、骨骼疾病、步态疾病或任何其他医疗状况。临床使用需要经过验证的传感器、校准采集流程、临床数据集、监管审查，并由合格医疗专业人员评估。
+
+## 许可证
+
+MIT
