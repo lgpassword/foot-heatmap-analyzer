@@ -14,4 +14,9 @@ public interface IFootRiskClassifier
     BalanceResult DescribeBalance(FootScanMetrics metrics);
 
     IReadOnlyList<AnalysisFinding> BuildFindings(FootScanMetrics metrics, BalanceResult balance);
+
+    /// <summary>
+    /// 根据提取后的指标生成完整筛查报告。
+    /// </summary>
+    FootAnalysisReport BuildReport(FootScanMetrics metrics, string disclaimer);
 }

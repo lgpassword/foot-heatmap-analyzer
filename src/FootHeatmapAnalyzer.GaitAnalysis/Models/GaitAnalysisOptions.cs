@@ -23,5 +23,19 @@ public sealed class GaitAnalysisOptions
     /// <summary>
     /// Ordered class labels corresponding to model output indices.
     /// </summary>
-    public string[] Labels { get; set; } = ["正常步态", "左右不对称", "前足负载偏高", "足跟负载偏高"];
+    public string[] Labels { get; set; } = ["Normal", "Pronation", "Supination", "Antalgic"];
+
+    /// <summary>
+    /// 配置文件中的类别标签别名，便于 appsettings 使用更直观的键名。
+    /// </summary>
+    public string[] ClassLabels
+    {
+        get => Labels;
+        set => Labels = value;
+    }
+
+    /// <summary>
+    /// Expected feature count for demo and validation metadata.
+    /// </summary>
+    public int InputFeatureCount { get; set; } = 16;
 }

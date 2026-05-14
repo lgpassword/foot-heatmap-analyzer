@@ -6,4 +6,8 @@ namespace FootHeatmapAnalyzer.Web.Dashboard;
 public sealed record DashboardPayload(
     ChartSeries CenterOfPressureOffset,
     ChartSeries Cadence,
-    GaugeMetric LoadBalance);
+    GaugeMetric LoadBalance,
+    EChartsOption BalanceChart,
+    EChartsOption CopChart,
+    EChartsOption LoadDistChart,
+    EChartsOption HotspotChart);

@@ -17,33 +17,28 @@ public sealed class DynamicTimeWarpingSensorAlignmentService : ISensorAlignmentS
             throw new ArgumentException("Both sensor streams must contain at least one sample.");
         }
 
-        var costs = new double[pressure.Count + 1, accelerometer.Count + 1];
-        for (var i = 0; i <= pressure.Count; i++)
+        var pressureValues = pressure.Select(sample => sample.Load).ToArray();
+        var accelerometerValues = accelerometer.Select(sample => sample.Magnitude).ToArray();
+        var costs = new double[pressureValues.Length + 1, accelerometerValues.Length + 1];
+        for (var i = 0; i <= pressureValues.Length; i++)
         {
-            for (var j = 0; j <= accelerometer.Count; j++)
+            for (var j = 0; j <= accelerometerValues.Length; j++)
             {
                 costs[i, j] = double.PositiveInfinity;
             }
         }
 
         costs[0, 0] = 0;
-        for (var i = 1; i <= pressure.Count; i++)
+        for (var i = 1; i <= pressureValues.Length; i++)
         {
-            for (var j = 1; j <= accelerometer.Count; j++)
+            for (var j = 1; j <= accelerometerValues.Length; j++)
             {
-                var distance = Distance(pressure[i - 1], accelerometer[j - 1]);
+                var distance = Math.Abs(pressureValues[i - 1] - accelerometerValues[j - 1]);
                 costs[i, j] = distance + Math.Min(costs[i - 1, j], Math.Min(costs[i, j - 1], costs[i - 1, j - 1]));
             }
         }
 
         return new SensorAlignmentResult(costs[pressure.Count, accelerometer.Count], TracePath(costs, pressure, accelerometer));
-    }
-
-    private static double Distance(PressureSample pressure, AccelerometerSample accelerometer)
-    {
-        var loadDistance = Math.Abs(pressure.Load - accelerometer.Magnitude);
-        var timeDistance = Math.Abs((pressure.Timestamp - accelerometer.Timestamp).TotalSeconds) * 0.05;
-        return loadDistance + timeDistance;
     }
 
     private static IReadOnlyList<AlignedSensorSample> TracePath(

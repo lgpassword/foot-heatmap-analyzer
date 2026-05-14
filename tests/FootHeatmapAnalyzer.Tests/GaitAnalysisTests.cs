@@ -9,7 +9,7 @@ namespace FootHeatmapAnalyzer.Tests;
 public sealed class GaitAnalysisTests
 {
     [Fact]
-    public void Predict_UsesBuiltInClassifierWhenOnnxModelIsNotConfigured()
+    public void Predict_ReturnsPlaceholderWhenOnnxModelIsNotConfigured()
     {
         var service = new OnnxGaitAnalysisService(new GaitAnalysisOptions());
         var sequence = new[]
@@ -20,9 +20,10 @@ public sealed class GaitAnalysisTests
 
         var prediction = service.Predict(sequence);
 
-        Assert.Equal("正常步态", prediction.Label);
-        Assert.InRange(prediction.Confidence, 0, 1);
-        Assert.Contains("左右不对称", prediction.Probabilities.Keys);
+        Assert.Equal("ModelNotConfigured", prediction.Label);
+        Assert.Equal(0, prediction.Confidence);
+        Assert.True(prediction.IsPlaceholder);
+        Assert.Contains("GaitAnalysis:ModelPath", prediction.Message);
     }
 
     [Fact]

@@ -5,7 +5,7 @@ using Microsoft.ML.OnnxRuntime.Tensors;
 namespace FootHeatmapAnalyzer.GaitAnalysis.Services;
 
 /// <summary>
-/// Uses ONNX Runtime or the built-in sequence classifier to classify pressure sequences on the server.
+/// 使用 ONNX Runtime 在服务端识别压力序列步态类别。
 /// </summary>
 public sealed class OnnxGaitAnalysisService : IGaitAnalysisService, IDisposable
 {
@@ -37,15 +37,20 @@ public sealed class OnnxGaitAnalysisService : IGaitAnalysisService, IDisposable
 
         if (string.IsNullOrWhiteSpace(options.ModelPath) || !File.Exists(options.ModelPath))
         {
-            return PredictWithBuiltInModel(sequence);
+            return new GaitPrediction(
+                "ModelNotConfigured",
+                0,
+                new Dictionary<string, float>(),
+                true,
+                "No ONNX model path is configured. Set GaitAnalysis:ModelPath in appsettings.json to enable predictions.");
         }
 
-        var tensor = new DenseTensor<float>([1, sequence.Count, featureCount]);
+        var tensor = new DenseTensor<float>([1, sequence.Count * featureCount]);
         for (var frameIndex = 0; frameIndex < sequence.Count; frameIndex++)
         {
             for (var featureIndex = 0; featureIndex < featureCount; featureIndex++)
             {
-                tensor[0, frameIndex, featureIndex] = sequence[frameIndex].Features[featureIndex];
+                tensor[0, (frameIndex * featureCount) + featureIndex] = sequence[frameIndex].Features[featureIndex];
             }
         }
 
@@ -88,75 +93,4 @@ public sealed class OnnxGaitAnalysisService : IGaitAnalysisService, IDisposable
         return session;
     }
 
-    private GaitPrediction PredictWithBuiltInModel(IReadOnlyList<PressureSequenceFrame> sequence)
-    {
-        var leftSeries = sequence.Select(frame => frame.Features.ElementAtOrDefault(0)).ToArray();
-        var rightSeries = sequence.Select(frame => frame.Features.ElementAtOrDefault(1)).ToArray();
-        var forefootSeries = sequence.Select(frame => frame.Features.ElementAtOrDefault(2)).ToArray();
-        var heelSeries = sequence.Select(frame => frame.Features.ElementAtOrDefault(3)).ToArray();
-        var asymmetry = AverageAbsoluteDifference(leftSeries, rightSeries);
-        var forefootBias = Average(forefootSeries) - Average(heelSeries);
-        var variability = AverageAbsoluteStepChange(sequence.Select(frame => frame.Features.Sum()).ToArray());
-
-        var normalScore = Clamp01(1 - asymmetry - Math.Abs(forefootBias) - (variability * .25f));
-        var asymmetryScore = Clamp01(asymmetry * 1.7f);
-        var forefootScore = Clamp01(Math.Max(0, forefootBias) * 1.6f);
-        var heelScore = Clamp01(Math.Max(0, -forefootBias) * 1.6f);
-        var scores = Normalize([normalScore, asymmetryScore, forefootScore, heelScore]);
-        var probabilities = options.Labels
-            .Take(scores.Length)
-            .Select((label, index) => new KeyValuePair<string, float>(label, scores[index]))
-            .ToDictionary(pair => pair.Key, pair => pair.Value);
-        var best = probabilities.MaxBy(pair => pair.Value);
-
-        return new GaitPrediction(best.Key, best.Value, probabilities);
-    }
-
-    private static float Average(float[] values) => values.Length == 0 ? 0 : values.Average();
-
-    private static float AverageAbsoluteDifference(float[] first, float[] second)
-    {
-        var count = Math.Min(first.Length, second.Length);
-        if (count == 0)
-        {
-            return 0;
-        }
-
-        var total = 0f;
-        for (var index = 0; index < count; index++)
-        {
-            total += Math.Abs(first[index] - second[index]);
-        }
-
-        return total / count;
-    }
-
-    private static float AverageAbsoluteStepChange(float[] values)
-    {
-        if (values.Length < 2)
-        {
-            return 0;
-        }
-
-        var total = 0f;
-        for (var index = 1; index < values.Length; index++)
-        {
-            total += Math.Abs(values[index] - values[index - 1]);
-        }
-
-        return total / (values.Length - 1);
-    }
-
-    private static float Clamp01(float value) => Math.Clamp(value, 0, 1);
-
-    private static float[] Normalize(float[] values)
-    {
-        var total = values.Sum();
-        if (total <= 0)
-        {
-            return [1, 0, 0, 0];
-        }
-
-        return values.Select(value => value / total).ToArray();
-    }
 }

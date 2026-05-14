@@ -12,11 +12,6 @@ public sealed class FootAnalysisService(IHeatmapFeatureExtractor featureExtracto
     public FootAnalysisReport Analyze(ParsedFootScan scan)
     {
         var metrics = featureExtractor.Extract(scan);
-        var archType = classifier.ClassifyArch(metrics);
-        var balance = classifier.DescribeBalance(metrics);
-        var gait = classifier.DescribeGait(metrics);
-        var findings = classifier.BuildFindings(metrics, balance);
-
-        return new FootAnalysisReport(archType, gait, balance.Label, findings, Disclaimer);
+        return classifier.BuildReport(metrics, Disclaimer);
     }
 }

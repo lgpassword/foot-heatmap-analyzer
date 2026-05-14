@@ -6,6 +6,20 @@ Foot Heatmap Analyzer is an open-source ASP.NET Core demo for parsing binary pla
 
 This project is intended for research, education, prototyping, and open-source collaboration. It is not a medical device and does not provide diagnosis.
 
+## Implementation Status
+
+| Component | Status |
+|-----------|--------|
+| Binary parser | Complete |
+| Heatmap feature extraction | Complete |
+| Risk classifier | Complete |
+| DTW sensor alignment | Complete (v0.2) |
+| ONNX gait analysis | Integration point - supply your own model |
+| QuestPDF reports | Complete (v0.4) |
+| ECharts dashboard | Complete (v0.4) |
+| SignalR real-time hub | Hub registered - client integration optional |
+| Patient profiles | In-memory only - replace store for production |
+
 ## Features
 
 - ASP.NET Core Razor Pages web interface.
@@ -24,7 +38,7 @@ This project is intended for research, education, prototyping, and open-source c
 - Dynamic Time Warping alignment for pressure and accelerometer time-series uploads.
 - Tenant-scoped patient and athlete profile management using ASP.NET Core Identity boundaries.
 - Open REST hardware ingestion API for external pressure sensing devices.
-- ECharts dashboard payloads for CoP offset, cadence proxy, and left/right load balance.
+- ECharts dashboard payloads for CoP offset, left/right load balance, forefoot/heel distribution, and hotspot counts.
 - QuestPDF report generation for printable pressure analysis PDFs.
 - No database or persistent storage.
 - Unit tests for parsing and analysis services.
@@ -89,7 +103,7 @@ Invalid payloads return HTTP 400 with a ProblemDetails response.
 
 `/api/render-frame` and `/api/render-frame/text` return compact base64-encoded raw pressure arrays for browser-side GPU or Canvas rendering. The payload advertises bicubic interpolation so clients can render locally instead of receiving server-generated images. SignalR clients can also connect to `/hubs/heatmap` and receive `heatmapFrame` payloads for live rendering.
 
-`/api/gait/analyze` accepts timestamped pressure sequence feature vectors and runs gait classification through `FootHeatmapAnalyzer.GaitAnalysis`. If an ONNX model path is configured and the model file exists, ONNX Runtime is used; otherwise the service uses a built-in deterministic sequence classifier with Chinese labels so the endpoint works out of the box.
+`/api/gait/analyze` accepts timestamped pressure sequence feature vectors or a scan payload and runs gait classification through `FootHeatmapAnalyzer.GaitAnalysis`. If an ONNX model path is configured and the model file exists, ONNX Runtime is used; otherwise the service returns a `ModelNotConfigured` placeholder result with setup guidance.
 
 `/api/sensors/align` accepts pressure load samples and phone accelerometer samples, then aligns non-uniform time series with a full Dynamic Time Warping cost matrix and monotonic backtrace through `FootHeatmapAnalyzer.SensorAlignment`.
 

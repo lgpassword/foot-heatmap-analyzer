@@ -209,7 +209,7 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
     }
 
     [Fact]
-    public async Task PostGaitAnalyze_ReturnsBuiltInPredictionWhenModelIsNotConfigured()
+    public async Task PostGaitAnalyze_ReturnsPlaceholderWhenModelIsNotConfigured()
     {
         var client = factory.CreateClient();
         var sequence = new[]
@@ -223,7 +223,8 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(prediction);
-        Assert.False(string.IsNullOrWhiteSpace(prediction.Label));
+        Assert.Equal("ModelNotConfigured", prediction.Label);
+        Assert.True(prediction.IsPlaceholder);
     }
 
     [Fact]

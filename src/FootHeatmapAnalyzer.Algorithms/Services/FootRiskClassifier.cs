@@ -59,6 +59,28 @@ public sealed class FootRiskClassifier(AnalysisOptions? options = null) : IFootR
         ];
     }
 
+    public FootAnalysisReport BuildReport(FootScanMetrics metrics, string disclaimer)
+    {
+        var archType = ClassifyArch(metrics);
+        var balance = DescribeBalance(metrics);
+        var gait = DescribeGait(metrics);
+        var findings = BuildFindings(metrics, balance);
+
+        return new FootAnalysisReport(archType, gait, balance.Label, findings, disclaimer)
+        {
+            ForefootHeelRatio = new(
+                CalculateForefootHeelRatio(metrics.Left),
+                CalculateForefootHeelRatio(metrics.Right)),
+            ArchIndexCategory = new(
+                ClassifyArchIndex(metrics.Left.ArchIndex),
+                ClassifyArchIndex(metrics.Right.ArchIndex)),
+            LoadSymmetryScore = CalculateLoadSymmetryScore(metrics),
+            HotspotSeverity = new(
+                ClassifyHotspotSeverity(metrics.Left.HotspotCount),
+                ClassifyHotspotSeverity(metrics.Right.HotspotCount))
+        };
+    }
+
     private AnalysisFinding BuildHotspotFinding(FootScanMetrics metrics)
     {
         var elevated = metrics.PeakPressure > options.HotspotThreshold || metrics.HotspotCount >= options.HotspotCountReviewThreshold;
@@ -109,5 +131,37 @@ public sealed class FootRiskClassifier(AnalysisOptions? options = null) : IFootR
             sparse ? "谨慎" : "可用",
             sparse ? $"仅 {metrics.ContactAreaRatio:P0} 的单元处于有效接触状态，扫描覆盖可能偏稀疏。" : $"接触覆盖率为 {metrics.ContactAreaRatio:P0}，可用于当前演示规则。",
             "识别可信度取决于传感器覆盖、校准质量和重复测量稳定性。");
+    }
+
+    private static double CalculateForefootHeelRatio(FootRegionMetrics metrics)
+    {
+        return Math.Round(Math.Clamp(metrics.ForefootLoad / Math.Max(metrics.HeelLoad, .001), .1, 10), 3);
+    }
+
+    private static string ClassifyArchIndex(double archIndex)
+    {
+        return archIndex switch
+        {
+            < .21 => "High",
+            <= .26 => "Normal",
+            _ => "Flat"
+        };
+    }
+
+    private static double CalculateLoadSymmetryScore(FootScanMetrics metrics)
+    {
+        var total = metrics.Left.TotalLoad + metrics.Right.TotalLoad;
+        return Math.Round(Math.Clamp(1 - (Math.Abs(metrics.Left.TotalLoad - metrics.Right.TotalLoad) / Math.Max(total, .001)), 0, 1), 3);
+    }
+
+    private static string ClassifyHotspotSeverity(int count)
+    {
+        return count switch
+        {
+            0 => "None",
+            <= 2 => "Mild",
+            <= 4 => "Moderate",
+            _ => "High"
+        };
     }
 }
