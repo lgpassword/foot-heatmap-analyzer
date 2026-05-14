@@ -71,12 +71,14 @@ button {
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 14px;
 }
 
 .platform-section {
   background: var(--surface2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  min-height: 170px;
   padding: 14px;
 }
 
@@ -130,6 +132,22 @@ button {
   overflow: auto;
   padding: 10px;
   white-space: pre-wrap;
+}
+
+.lower-stack {
+  align-items: stretch;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+.lower-stack .card {
+  overflow: visible;
+}
+
+.upload-panel {
+  min-height: 180px;
 }
 
 .app-shell {
