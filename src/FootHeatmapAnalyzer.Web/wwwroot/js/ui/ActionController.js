@@ -62,6 +62,11 @@ export class ActionController {
             return;
         }
 
+        if (actionName === "download-pdf") {
+            this.downloadPdfReport();
+            return;
+        }
+
         if (actionName === "apply-settings") {
             this.renderVisuals();
             this.toastService.show("显示参数已应用到热力图。");
@@ -103,6 +108,44 @@ export class ActionController {
         FileDownloadService.downloadFile(this.document, "foot-heatmap-report.txt", href);
         URL.revokeObjectURL(href);
         this.toastService.show("已导出当前文本报告。");
+    }
+
+    // 调用后端 QuestPDF 端点生成并下载 PDF 报告。
+    async downloadPdfReport() {
+        const payload = this.dataStore.getPayload();
+        if (!payload) return;
+
+        const response = await fetch("/api/reports/pdf", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: this.encodeCurrentPayloadAsHex(payload)
+        });
+        if (!response.ok) {
+            this.toastService.show("PDF 报告生成失败。");
+            return;
+        }
+
+        const blob = await response.blob();
+        const href = URL.createObjectURL(blob);
+        FileDownloadService.downloadFile(this.document, "foot-pressure-report.pdf", href);
+        URL.revokeObjectURL(href);
+        this.toastService.show("已生成并下载 PDF 报告。");
+    }
+
+    // 将当前矩阵编码为演示协议十六进制载荷。
+    encodeCurrentPayloadAsHex(payload) {
+        const height = payload.left.length;
+        const width = payload.left[0].length;
+        const bytes = [width, height];
+        for (const matrix of [payload.left, payload.right]) {
+            for (const row of matrix) {
+                for (const value of row) {
+                    bytes.push(Math.max(0, Math.min(255, Math.round(value * 255))));
+                }
+            }
+        }
+
+        return bytes.map(value => value.toString(16).padStart(2, "0")).join("");
     }
 
     // 触发设置重置按钮对应的输入控件状态。

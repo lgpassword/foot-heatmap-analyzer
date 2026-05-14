@@ -9,6 +9,7 @@ import { SettingsController } from "../ui/SettingsController.js";
 import { ToastService } from "../ui/ToastService.js";
 import { UploadController } from "../ui/UploadController.js";
 import { ViewNavigationController } from "../ui/ViewNavigationController.js";
+import { PlatformController } from "../ui/PlatformController.js";
 
 // 负责组装页面所需的前端服务，避免单个脚本承担所有职责。
 export class FootHeatmapApplication {
@@ -59,6 +60,7 @@ export class FootHeatmapApplication {
         new HeatmapTabController(this.document, () => this.renderVisuals()).bind();
         new ViewNavigationController(this.document).bind();
         new UploadController(this.document).bind();
+        new PlatformController(this.document, this.dataStore, toastService).bind();
         settingsController.bind();
         new ActionController(this.document, this.dataStore, this.settings, () => this.renderVisuals(), toastService).bind();
     }

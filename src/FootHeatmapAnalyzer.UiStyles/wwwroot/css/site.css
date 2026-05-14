@@ -68,6 +68,71 @@ button {
   min-width: 0;
 }
 
+.platform-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.platform-section {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.platform-section h2 {
+  font-size: 14px;
+  margin: 0 0 10px;
+}
+
+.inline-form {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.inline-form .btn {
+  grid-column: span 2;
+}
+
+.profile-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.profile-pill {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  display: inline-flex;
+  flex-direction: column;
+  min-width: 130px;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+.profile-pill span,
+.empty-state {
+  color: var(--text-sec);
+  font-size: 12px;
+}
+
+.api-result {
+  background: #08192e;
+  border-radius: var(--radius);
+  color: #d7efff;
+  font-size: 12px;
+  margin: 12px 0 0;
+  min-height: 92px;
+  overflow: auto;
+  padding: 10px;
+  white-space: pre-wrap;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr);

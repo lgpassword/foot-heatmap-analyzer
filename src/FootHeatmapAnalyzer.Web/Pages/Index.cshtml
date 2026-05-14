@@ -16,6 +16,7 @@
         <button type="button" class="btn btn-teal" data-bs-toggle="modal" data-bs-target="#importScanModal"><i class="ti ti-upload"></i>上传数据</button>
         <button type="button" class="btn btn-plain" data-app-action="reanalyze"><i class="ti ti-refresh"></i>重新分析</button>
         <button type="button" class="btn btn-plain" data-app-action="print-report"><i class="ti ti-printer"></i>打印</button>
+        <button type="button" class="btn btn-plain" data-app-action="download-pdf"><i class="ti ti-file-type-pdf"></i>PDF</button>
         <button type="button" class="btn btn-blue" data-app-action="export-report"><i class="ti ti-file-export"></i>导出报告</button>
     </div>
 </section>
@@ -154,6 +155,37 @@
         <div class="dashboard-grid" id="dashboardCharts" aria-label="压力中心、步频和左右受力仪表盘"></div>
     </article>
 
+    <article class="card platform-panel col-span-2">
+        <div class="card-header">
+            <div class="card-title"><i class="ti ti-users-group"></i>租户档案与硬件接入</div>
+            <span class="status-badge badge-info">API 已连接</span>
+        </div>
+        <div class="platform-grid">
+            <section class="platform-section">
+                <h2>患者/运动员档案</h2>
+                <div class="inline-form">
+                    <input id="tenantIdInput" class="form-control" value="demo" aria-label="租户 ID" />
+                    <select id="profileKindInput" class="form-select" aria-label="档案类型">
+                        <option value="Patient">患者</option>
+                        <option value="Athlete">运动员</option>
+                    </select>
+                    <input id="profileNameInput" class="form-control" value="演示档案" aria-label="档案名称" />
+                    <button type="button" class="btn btn-teal" data-platform-action="create-profile">创建档案</button>
+                </div>
+                <div class="profile-list" id="profileList" aria-label="当前租户档案列表"></div>
+            </section>
+            <section class="platform-section">
+                <h2>开放硬件接入</h2>
+                <div class="inline-form">
+                    <input id="deviceIdInput" class="form-control" value="demo-device" aria-label="设备 ID" />
+                    <input id="hardwareProfileIdInput" class="form-control" placeholder="档案 ID（可选）" aria-label="硬件档案 ID" />
+                    <button type="button" class="btn btn-blue" data-platform-action="submit-hardware">模拟设备上传</button>
+                </div>
+                <pre class="api-result" id="hardwareApiResult" aria-label="硬件 API 响应结果"></pre>
+            </section>
+        </div>
+    </article>
+
     <article class="card upload-panel">
         <div class="card-header">
             <div class="card-title"><i class="ti ti-upload"></i>上传新扫描数据</div>
@@ -232,6 +264,11 @@
                 <i class="ti ti-printer"></i>
                 <strong>打印当前报告</strong>
                 <span>调用浏览器打印预览。</span>
+            </button>
+            <button type="button" class="action-tile" data-app-action="download-pdf">
+                <i class="ti ti-file-type-pdf"></i>
+                <strong>下载 PDF 报告</strong>
+                <span>调用 QuestPDF 后端生成可打印报告。</span>
             </button>
         </div>
     </article>

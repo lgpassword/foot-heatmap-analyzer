@@ -36,6 +36,12 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
         response.EnsureSuccessStatusCode();
         Assert.Contains("""<script type="application/json" id="heatmap-data">""", html);
         Assert.Contains("id=\"combinedHeatmap\"", html);
+        Assert.Contains("id=\"dashboardCharts\"", html);
+        Assert.Contains("id=\"profileList\"", html);
+        Assert.Contains("id=\"hardwareApiResult\"", html);
+        Assert.Contains("data-app-action=\"download-pdf\"", html);
+        Assert.Contains("data-platform-action=\"create-profile\"", html);
+        Assert.Contains("data-platform-action=\"submit-hardware\"", html);
         Assert.Contains("\"left\"", html);
         Assert.DoesNotContain("data-heatmap", html);
         Assert.DoesNotContain("id=\"leftHeatmap\"", html);
