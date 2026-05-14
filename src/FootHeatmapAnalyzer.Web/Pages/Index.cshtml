@@ -29,7 +29,35 @@
 <script type="application/json" id="heatmap-data">@Html.Raw(Model.HeatmapJson)</script>
 
 <section class="content-body app-view" data-view-panel="analysis">
-    <article class="card heatmap-panel col-span-2">
+    <aside class="left-col">
+        <article class="card dashboard-panel">
+            <div class="card-header">
+                <div class="card-title"><i class="ti ti-chart-dots-3"></i>数据仪表盘</div>
+                <span class="status-badge badge-info">ECharts</span>
+            </div>
+            <div class="dashboard-grid" id="dashboardCharts" aria-label="压力中心、步频和左右受力仪表盘"></div>
+        </article>
+
+        <article class="card metrics-panel">
+            <div class="card-header">
+                <div class="card-title"><i class="ti ti-dashboard"></i>关键指标</div>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label-row"><i class="ti ti-arch"></i>足弓类型</div>
+                    <div class="metric-value warn">@report?.ArchType</div>
+                    <div class="metric-sub">规则分析结果</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label-row"><i class="ti ti-flame"></i>热点发现</div>
+                    <div class="metric-value ok">@report?.Findings.Count</div>
+                    <div class="metric-sub">指标发现数量</div>
+                </div>
+            </div>
+        </article>
+    </aside>
+
+    <article class="card heatmap-panel">
         <div class="card-header">
             <div class="card-title"><i class="ti ti-map-2"></i>双足压力热力图</div>
             <span class="status-badge badge-info">@left?.Width x @left?.Height / @right?.Width x @right?.Height</span>
@@ -129,33 +157,7 @@
         </div>
     </article>
 
-    <article class="card metrics-panel">
-        <div class="card-header">
-            <div class="card-title"><i class="ti ti-dashboard"></i>关键指标</div>
-        </div>
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-label-row"><i class="ti ti-arch"></i>足弓类型</div>
-                <div class="metric-value warn">@report?.ArchType</div>
-                <div class="metric-sub">规则分析结果</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label-row"><i class="ti ti-flame"></i>热点发现</div>
-                <div class="metric-value ok">@report?.Findings.Count</div>
-                <div class="metric-sub">指标发现数量</div>
-            </div>
-        </div>
-    </article>
-
-    <article class="card dashboard-panel col-span-2">
-        <div class="card-header">
-            <div class="card-title"><i class="ti ti-chart-dots-3"></i>数据仪表盘</div>
-            <span class="status-badge badge-info">ECharts</span>
-        </div>
-        <div class="dashboard-grid" id="dashboardCharts" aria-label="压力中心、步频和左右受力仪表盘"></div>
-    </article>
-
-    <article class="card platform-panel col-span-2">
+    <article class="card platform-panel col-span-all">
         <div class="card-header">
             <div class="card-title"><i class="ti ti-users-group"></i>租户档案与硬件接入</div>
             <span class="status-badge badge-info">API 已连接</span>
