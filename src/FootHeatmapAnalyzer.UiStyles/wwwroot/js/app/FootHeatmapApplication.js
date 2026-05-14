@@ -1,5 +1,5 @@
 import { HeatmapDataStore } from "../data/HeatmapDataStore.js";
-import { HeatmapRenderer } from "../rendering/HeatmapRenderer.js";
+import { GpuHeatmapRenderer } from "../rendering/GpuHeatmapRenderer.js";
 import { DistributionChartRenderer } from "../rendering/DistributionChartRenderer.js";
 import { RegionLoadRenderer } from "../rendering/RegionLoadRenderer.js";
 import { ActionController } from "../ui/ActionController.js";
@@ -39,7 +39,7 @@ export class FootHeatmapApplication {
             showLabels: true
         };
         this.dataStore = new HeatmapDataStore(document);
-        this.heatmapRenderer = new HeatmapRenderer(document);
+        this.heatmapRenderer = new GpuHeatmapRenderer(document);
         this.distributionRenderer = new DistributionChartRenderer(document);
         this.regionRenderer = new RegionLoadRenderer(document);
     }

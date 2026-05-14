@@ -3,6 +3,8 @@
   <ItemGroup>
     <ProjectReference Include="..\FootHeatmapAnalyzer.Core\FootHeatmapAnalyzer.Core.csproj" />
     <ProjectReference Include="..\FootHeatmapAnalyzer.Algorithms\FootHeatmapAnalyzer.Algorithms.csproj" />
+    <ProjectReference Include="..\FootHeatmapAnalyzer.GaitAnalysis\FootHeatmapAnalyzer.GaitAnalysis.csproj" />
+    <ProjectReference Include="..\FootHeatmapAnalyzer.SensorAlignment\FootHeatmapAnalyzer.SensorAlignment.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -19,6 +19,9 @@ This project is intended for research, education, prototyping, and open-source c
   - arch and contact-area distribution
   - forefoot/heel load distribution
   - left-right load and pressure-center symmetry
+- Browser-side WebGL heatmap rendering with bicubic interpolation and compact raw pressure frames.
+- Server-side ONNX Runtime integration point for cloud-based gait sequence recognition.
+- Dynamic Time Warping alignment for pressure and accelerometer time-series uploads.
 - No database or persistent storage.
 - Unit tests for parsing and analysis services.
 
@@ -59,9 +62,19 @@ curl -X POST http://localhost:5000/api/analyze \
 curl -X POST http://localhost:5000/api/analyze/text \
   -H "Content-Type: text/plain" \
   --data-binary "@samples/sample-scan.hex"
+
+curl -X POST http://localhost:5000/api/render-frame/text \
+  -H "Content-Type: text/plain" \
+  --data-binary "@samples/sample-scan.hex"
 ```
 
 Invalid payloads return HTTP 400 with a ProblemDetails response.
+
+`/api/render-frame` and `/api/render-frame/text` return compact base64-encoded raw pressure arrays for browser-side GPU or Canvas rendering. The payload advertises bicubic interpolation so clients can render locally instead of receiving server-generated images. SignalR clients can also connect to `/hubs/heatmap` and receive `heatmapFrame` payloads for live rendering.
+
+`/api/gait/analyze` accepts timestamped pressure sequence feature vectors and runs the configured ONNX model through `FootHeatmapAnalyzer.GaitAnalysis`. A model path must be configured before the endpoint can return predictions.
+
+`/api/sensors/align` accepts pressure load samples and phone accelerometer samples, then aligns non-uniform time series with Dynamic Time Warping through `FootHeatmapAnalyzer.SensorAlignment`.
 
 ## Run Locally
 
@@ -84,6 +97,10 @@ src/FootHeatmapAnalyzer.Algorithms/
   Services/     Heatmap feature extraction and screening classifiers
 src/FootHeatmapAnalyzer.Composition/
   *.cs          Unified dependency injection registration
+src/FootHeatmapAnalyzer.GaitAnalysis/
+  Services/     ONNX Runtime gait sequence recognition
+src/FootHeatmapAnalyzer.SensorAlignment/
+  Services/     Dynamic Time Warping sensor stream alignment
 src/FootHeatmapAnalyzer.UiStyles/
   wwwroot/      Shared CSS and JavaScript static assets
 src/FootHeatmapAnalyzer.Web/
@@ -99,6 +116,8 @@ The current recognition pipeline is intentionally modular:
 - `FootScanParser` in `Core`: parses bytes or pasted payloads into normalized heatmap matrices.
 - `HeatmapFeatureExtractor` in `Algorithms`: extracts region loads, arch index, contact area, hotspots, and center-of-pressure features.
 - `FootRiskClassifier` in `Algorithms`: converts features into transparent non-diagnostic screening categories.
+- `OnnxGaitAnalysisService` in `GaitAnalysis`: runs trained 1D-CNN, Transformer, or similar ONNX sequence models on the server.
+- `DynamicTimeWarpingSensorAlignmentService` in `SensorAlignment`: aligns pressure and accelerometer streams sampled at different rates.
 - `FootAnalysisService` in `Core`: orchestrates extraction and classification into the final report through interfaces.
 - `AddFootHeatmapAnalyzer` in `Composition`: registers the parser, algorithms, classifier, and analysis service in one place.
 

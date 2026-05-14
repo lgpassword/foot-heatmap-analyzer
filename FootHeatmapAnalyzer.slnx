@@ -3,6 +3,8 @@
     <Project Path="src/FootHeatmapAnalyzer.Algorithms/FootHeatmapAnalyzer.Algorithms.csproj" />
     <Project Path="src/FootHeatmapAnalyzer.Composition/FootHeatmapAnalyzer.Composition.csproj" />
     <Project Path="src/FootHeatmapAnalyzer.Core/FootHeatmapAnalyzer.Core.csproj" />
+    <Project Path="src/FootHeatmapAnalyzer.GaitAnalysis/FootHeatmapAnalyzer.GaitAnalysis.csproj" />
+    <Project Path="src/FootHeatmapAnalyzer.SensorAlignment/FootHeatmapAnalyzer.SensorAlignment.csproj" />
     <Project Path="src/FootHeatmapAnalyzer.UiStyles/FootHeatmapAnalyzer.UiStyles.csproj" />
     <Project Path="src/FootHeatmapAnalyzer.Web/FootHeatmapAnalyzer.Web.csproj" />
   </Folder>

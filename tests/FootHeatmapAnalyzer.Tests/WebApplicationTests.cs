@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net.Http.Json;
 using System.Text;
 using FootHeatmapAnalyzer.Core.Models;
+using FootHeatmapAnalyzer.GaitAnalysis.Models;
+using FootHeatmapAnalyzer.SensorAlignment.Models;
 
 namespace FootHeatmapAnalyzer.Tests;
 
@@ -49,6 +51,7 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
         Assert.Equal("nosniff", response.Headers.GetValues("X-Content-Type-Options").Single());
         Assert.Equal("no-referrer", response.Headers.GetValues("Referrer-Policy").Single());
         Assert.Contains("default-src 'self'", response.Headers.GetValues("Content-Security-Policy").Single());
+        Assert.Contains("connect-src 'self'", response.Headers.GetValues("Content-Security-Policy").Single());
     }
 
     [Fact]
@@ -91,5 +94,67 @@ public sealed class WebApplicationTests : IClassFixture<WebApplicationFactory<Pr
         var response = await client.PostAsync("/api/analyze/text", content);
 
         Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostRenderFrameText_ReturnsCompressedHeatmapPayload()
+    {
+        var client = factory.CreateClient();
+        var hex = Convert.ToHexString(ParsedFootScan.CreateSampleBytes());
+        using var content = new StringContent(hex, Encoding.UTF8, "text/plain");
+
+        var response = await client.PostAsync("/api/render-frame/text", content);
+        var frame = await response.Content.ReadFromJsonAsync<HeatmapRenderFrame>();
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(frame);
+        Assert.Equal("bicubic", frame.Interpolation);
+        Assert.False(string.IsNullOrWhiteSpace(frame.Left.Data));
+    }
+
+    [Fact]
+    public async Task GetHeatmapHubEndpoint_ExistsForSignalRNegotiation()
+    {
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsync("/hubs/heatmap/negotiate?negotiateVersion=1", null);
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task PostGaitAnalyze_ReturnsBadRequestWhenModelIsNotConfigured()
+    {
+        var client = factory.CreateClient();
+        var sequence = new[]
+        {
+            new PressureSequenceFrame(TimeSpan.Zero, [1f, .5f])
+        };
+
+        var response = await client.PostAsJsonAsync("/api/gait/analyze", sequence);
+
+        Assert.Equal(System.Net.HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostSensorsAlign_ReturnsDtwPath()
+    {
+        var client = factory.CreateClient();
+        var request = new SensorAlignmentRequest(
+            [
+                new PressureSample(TimeSpan.Zero, 1),
+                new PressureSample(TimeSpan.FromMilliseconds(20), 2)
+            ],
+            [
+                new AccelerometerSample(TimeSpan.Zero, 1, 0, 0),
+                new AccelerometerSample(TimeSpan.FromMilliseconds(10), 2, 0, 0)
+            ]);
+
+        var response = await client.PostAsJsonAsync("/api/sensors/align", request);
+        var result = await response.Content.ReadFromJsonAsync<SensorAlignmentResult>();
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(result);
+        Assert.NotEmpty(result.Path);
     }
 }

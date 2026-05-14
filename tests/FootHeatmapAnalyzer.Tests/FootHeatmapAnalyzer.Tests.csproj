@@ -24,6 +24,8 @@
     <ProjectReference Include="..\..\src\FootHeatmapAnalyzer.Core\FootHeatmapAnalyzer.Core.csproj" />
     <ProjectReference Include="..\..\src\FootHeatmapAnalyzer.Algorithms\FootHeatmapAnalyzer.Algorithms.csproj" />
     <ProjectReference Include="..\..\src\FootHeatmapAnalyzer.Composition\FootHeatmapAnalyzer.Composition.csproj" />
+    <ProjectReference Include="..\..\src\FootHeatmapAnalyzer.GaitAnalysis\FootHeatmapAnalyzer.GaitAnalysis.csproj" />
+    <ProjectReference Include="..\..\src\FootHeatmapAnalyzer.SensorAlignment\FootHeatmapAnalyzer.SensorAlignment.csproj" />
     <ProjectReference Include="..\..\src\FootHeatmapAnalyzer.Web\FootHeatmapAnalyzer.Web.csproj" />
   </ItemGroup>
 
